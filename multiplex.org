@@ -1,0 +1,71 @@
+#+TITLE: multiplexing
+#+OPTIONS: reveal_single_file:t toc:nil
+#+MACRO: a @@html: <span class="fragment" data-fragment-index="$2">$1</span>@@
+* Front matter  :noexport:
+** key display
+consider using =screenkey=
+** setup
+#+begin_src elisp :results none
+(use-package ox-reveal :ensure t)
+#+end_src
+
+#+begin_src bash :results none
+test -d reval.js && exit 0
+wget https://github.com/hakimel/reveal.js/archive/refs/tags/5.1.0.zip
+unzip 5.1.0.zip && rm 5.1.0.zip
+mv reveal.js-5.1.0 reveal.js
+#+end_src
+
+* Mulitplexing
+~tmux~ is the successor to ~GNU screen~.
+** What?
+
+ * How (where) do you run a program that's going to take hours or days to run?
+ * How do you start multiple shells on the same remote server?
+ * What happens to your remote shell after a (local) network issue?
+
+** Example
+simulate a long process
+#+begin_src bash :eval never :tangle simulate.sh :tangle-mode u+x
+#!/usr/bin/env sh
+cnt=0
+while let ++cnt; do date +"$cnt %T"; sleep 1; done
+#+end_src
+
+** Job control Side quest
+
+ * suspend (ctrl-z)
+   * NB suspended job do not run in background
+   * ~fg~ to resurrect (foreground)
+   * ~bg~ to put in background
+   * ~jobs~ to show whats happening
+ * fork with ~&~
+   * (mind the [[https://en.wikipedia.org/wiki/Fork_bomb][fork bomb]] ~:(){ :|:& };:~)
+   * for process usage see ~htop~ and ~uptime~
+   * ~./simulate.sh &~
+   * ~disown~
+ * finding processing
+   * ~pgrep -af simulate.sh~  search all processes by name
+   * ~kill $PID~  closing the process by it's identification number
+
+* zellij
+easy mode tmux (written in rust)
+
+** attach/detach
+  - ~zellij~
+  - ~./simulate.sh~
+  - ~C-o d~ -- detach
+  - back out can close window. lose network, etc
+  - ~zellij attach~ -- reattach. see it's been running
+
+** again with xkill
+
+
+* tmux
+ * prefix key to issue commands to the
+
+* alternatives
+** screen
+** emacs
+** nohup
+** detach
