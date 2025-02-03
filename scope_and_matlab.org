@@ -1,0 +1,164 @@
+#+TITLE: Function Scope / MATLAB
+#+REVEAL_THEME: dracula
+#+REVEAL_PLUGINS: (highlight)
+#+REVEAL_EXTRA_SCRIPTS: ("https://code.jquery.com/jquery-3.7.1.min.js" "https://www.xn--4-cmb.com/rpoll/poll.js")
+#+REVEAL_EXTRA_CSS: https://www.xn--4-cmb.com/rpoll/poll.css
+#+REVEAL_HIGHLIGHT_CSS_IGNORE: reveal.js/plugin/highlight/monokai.css
+#+PROPERTY: HEADER-ARGS+ :eval no-export
+* frontmatter :noexport:
+** emacs
+setup reveal.js
+#+begin_src elisp :results none
+; 20250202  org-re-reveal didn't work. install from mela with oer-reveal (but not loaded?) and does work,
+(use-package org-re-reveal :ensure t) ; fork of org-reveal
+;(use-package oer-reveal :ensure t) ; export backend -- doesn't work? above does?
+(setq org-reveal-root "/home/foranw/src/work/present/reveal.js/")
+#+end_src
+
+org capture into
+#+begin_src elisp :results none
+(setq-local org-download-image-dir "./scope/")
+#+end_src
+
+** browser
+for firefox open about:config and set security.fileuri.strict to false
+** reveal.js
+#+begin_src bash :results none
+test -d reveal.js/  && exit 0
+[ ! -r reveal.js.zip ] && wget https://github.com/hakimel/reveal.js/archive/master.zip -O reveal.js.zip
+unzip reveal.js.zip # reveal.js-master/{dist,plugin}
+mv reveal.js-master reveal.js
+#+end_src
+** poll
+git@github.com:jschildgen/reveal.js-poll-plugin.git added to https://www.xn--4-cmb.com/rpoll
+where poll.js was modified
+
+use like
+
+#+begin_html
+<div class="poll fragment" style="bottom:50px">
+ <h1>What is the question?</h1>
+ <ul>
+   <li>Wrong answer</li>
+   <li data-poll="correct">Correct answer</li>
+ </ul>
+ <h2></h2>
+</div>
+#+end_html
+
+Or with ~#+REVEAL_HTML:~?
+
+* Poll Test
+Hey look it's interactive! Sorry about the log url. It'll work on a phone too though
+#+REVEAL_HTML: <div class="poll fragment" style="position: relative; right: auto; bottom: auto; width: auto;"> <b>Polling ... </b> <ul> <li>is engaging</li> <li>refines instruction</li> <li>has set up time ≫ utility </li> <li>kills the vibe</li> </ul> <h2></h2> </div>
+
+* Function Scope
+[[file:scope/lionking_beyond.webp]]
+[[file:scope/3mouse.jpg]]
+
+
+** Globals
+*** global x
+#+ATTR_REVEAL: :frag (roll-in)
+R code setting variable ~x~ and function ~myprint~ in the "global" workspace.
+
+#+ATTR_REVEAL: :frag (roll-in)
+#+begin_src R :results output :exports both
+x <- 'foobar'
+
+myprint <- function(y) {
+  print(y)
+}
+
+print(x)
+myprint("lorem ipsum")
+#+end_src
+
+
+#+ATTR_REVEAL: :frag t
+#+RESULTS:
+: [1] "foobar"
+: [1] "lorem ipsum"
+
+*** Global in a function
+
+If we move ~print(x)~ into the function, it still works!
+
+#+ATTR_REVEAL: :code_attribs data-line-numbers='3'
+#+begin_src R :results output :exports both
+x <- 'foobar'
+myfunc <- function(y) {
+  print(x) # uses 'x' from "global" scope
+  print(y)
+}
+myfunc("lorem ipsum")
+#+end_src
+
+#+ATTR_REVEAL: :frag (roll-in)
+#+RESULTS:
+: [1] "foobar"
+: [1] "lorem ipsum"
+
+*** Global are scary
+
+#+REVEAL_HTML: <div class="poll fragment"> <h1>myfunc will print</h1> <ul> <li>foobar</li> <li data-poll="correct">fizzbuz</li> <li data-poll="correct">R will give an error message</li> </ul> <h2></h2> </div>
+
+#+ATTR_REVEAL: :code_attribs data-line-numbers='6' :frag (roll-in)
+#+begin_src R :results output :exports both
+x <- 'foobar'
+myfunc <- function(y) {
+  print(x) # uses 'x' from "global" scope
+  print(y)
+}
+x <- 'fizzbuzz' # redefine after function def
+myfunc("lorem ipsum")
+#+end_src
+
+
+#+ATTR_REVEAL: :frag t
+#+RESULTS:
+: [1] "fizzbuzz"
+: [1] "lorem ipsum"
+
+*** local overwrite
+
+Let's add ~x~ to the function.
+#+begin_src patch
+- myfunc <- function(y) {
++ myfunc <- function(x, y) {
+#+end_src
+
+Now there's a workspace global ~x~ *and* ~x~ inside the function
+
+#+ATTR_REVEAL: :code_attribs data-line-numbers='3'
+#+begin_src R :results output :exports both
+x <- 'foobar'
+myfunc <- function(x, y) {
+  print(x) # uses 'x' from function
+  print(y)
+}
+myfunc("LOCAL", "lorem ipsum")
+#+end_src
+
+#+RESULTS:
+: [1] "LOCAL"
+: [1] "lorem ipsum"
+
+* MATLAB
+:PROPERTIES:
+:reveal_background: ./npac/irons.jpg
+:reveal_background_opacity: 0.3
+:reveal_background_size: 100%
+:END:
+
+Irons in the fire
+
+* Another thing
+  * is here
+  * and here
+
+
+
+* backmatter :noexport:
+need to include jquery and poll
+
