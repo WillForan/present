@@ -1,18 +1,20 @@
 #+TITLE: Function Scope / MATLAB
 #+REVEAL_THEME: dracula
 #+REVEAL_PLUGINS: (highlight)
-#+REVEAL_EXTRA_SCRIPTS: ("https://code.jquery.com/jquery-3.7.1.min.js" "https://www.xn--4-cmb.com/rpoll/poll.js")
+#+REVEAL_EXTRA_SCRIPTS: ("https://code.jquery.com/jquery-3.7.1.min.js" "https://www.xn--4-cmb.com/rpoll/poll.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/audio-slideshow/plugin.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/audio-slideshow/recorder.js" "https://cdnjs.cloudflare.com/ajax/libs/RecordRTC/5.6.2/RecordRTC.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/anything/plugin.js")
 #+REVEAL_EXTRA_CSS: https://www.xn--4-cmb.com/rpoll/poll.css
 #+REVEAL_HIGHLIGHT_CSS_IGNORE: reveal.js/plugin/highlight/monokai.css
 #+PROPERTY: HEADER-ARGS+ :eval no-export
+#+OPTIONS:  toc:nil
 * frontmatter :noexport:
 ** emacs
 setup reveal.js
 #+begin_src elisp :results none
 ; 20250202  org-re-reveal didn't work. install from mela with oer-reveal (but not loaded?) and does work,
 (use-package org-re-reveal :ensure t) ; fork of org-reveal
-;(use-package oer-reveal :ensure t) ; export backend -- doesn't work? above does?
+(use-package oer-reveal :ensure t) ; export backend -- doesn't work? above does?
 (setq org-reveal-root "/home/foranw/src/work/present/reveal.js/")
+(setq oer-reveal-plugin-4-config "") ; remove RevealAudio
 #+end_src
 
 org capture into
@@ -20,6 +22,28 @@ org capture into
 (setq-local org-download-image-dir "./scope/")
 #+end_src
 
+
+*** adding fragments to src
+#+begin_src  :eval never :resutls none
+(defun org-re-reveal-fixed-width (fixed-width _contents _info)
+  "Transcode a FIXED-WIDTH element from Org to HTML.
+CONTENTS is nil.  INFO is a plist holding contextual information."
+  (message "hi!")
+  (let* ((attr-html (org-export-read-attribute :attr_html fixed-width))
+         (attr-string (if attr-html
+                          (concat
+                           " " (org-html--make-attribute-string attr-html))
+                        ""))
+         (label (let ((lbl (org-element-property :name fixed-width)))
+                    (if (not lbl) ""
+                      (format " id=\"%s-results\"" lbl))))
+         (pre-tag (format "<pre %s%s>"
+                          (if attr-html attr-string)
+                          label)))
+    (format "%s\n%s</pre>" pre-tag (org-html-do-format-code
+                                    (org-remove-indentation
+                                     (org-element-property :value fixed-width))))))
+#+end_src
 ** browser
 for firefox open about:config and set security.fileuri.strict to false
 ** reveal.js
@@ -29,6 +53,12 @@ test -d reveal.js/  && exit 0
 unzip reveal.js.zip # reveal.js-master/{dist,plugin}
 mv reveal.js-master reveal.js
 #+end_src
+
+#+begin_src bash :results none
+test -r oer-reveal || git clone https://gitlab.com/oer/oer-reveal
+#+end_src
+
+
 ** poll
 git@github.com:jschildgen/reveal.js-poll-plugin.git added to https://www.xn--4-cmb.com/rpoll
 where poll.js was modified
@@ -46,45 +76,69 @@ use like
 </div>
 #+end_html
 
+
 Or with ~#+REVEAL_HTML:~?
 
+#+MACRO: mpoll #+REVEAL_HTML:<div class="poll fragment" $3 style="position: relative; right: auto; bottom: auto; width: auto;"> <b>$1</b> <ul>$2</ul> <h2></h2> </div>
+
 * Poll Test
-Hey look it's interactive! Sorry about the log url. It'll work on a phone too though
-#+REVEAL_HTML: <div class="poll fragment" style="position: relative; right: auto; bottom: auto; width: auto;"> <b>Polling ... </b> <ul> <li>is engaging</li> <li>refines instruction</li> <li>has set up time ≫ utility </li> <li>kills the vibe</li> </ul> <h2></h2> </div>
+Hey look it's interactive!
+
+https://www.xn--4-cmb.com/rpoll
+
+
+#+REVEAL_HTML: <div class="poll fragment" style="position: relative; right: auto; bottom: auto; width: auto;"> <b>Polling ... </b> <ul> <li>is engaging</li> <li>refines instruction</li> <li>set up time ≫ utility </li> <li>kills the vibe</li> </ul> <h2></h2> </div>
 
 * Function Scope
+#+ATTR_HTML: :height 300
 [[file:scope/lionking_beyond.webp]]
+
+#+ATTR_HTML: :height 300
 [[file:scope/3mouse.jpg]]
 
 
 ** Globals
 *** global x
-#+ATTR_REVEAL: :frag (roll-in)
-R code setting variable ~x~ and function ~myprint~ in the "global" workspace.
+R code setting "global" workspace variable ~x~ and function ~myprint~
 
-#+ATTR_REVEAL: :frag (roll-in)
+#+ATTR_HTML: :class fragment FINDMEEXAMPLE
+#+NAME: global_x
 #+begin_src R :results output :exports both
+# define them
 x <- 'foobar'
 
 myprint <- function(y) {
   print(y)
 }
 
+# use them
 print(x)
 myprint("lorem ipsum")
 #+end_src
 
-
 #+ATTR_REVEAL: :frag t
-#+RESULTS:
+#+attr_html: :class fragment
+#+RESULTS: global_x
 : [1] "foobar"
 : [1] "lorem ipsum"
 
+
 *** Global in a function
 
-If we move ~print(x)~ into the function, it still works!
+If we move ~print(x)~ into the function
 
-#+ATTR_REVEAL: :code_attribs data-line-numbers='3'
+#+ATTR_REVEAL: :frag fade-in-then-out :data-fragment-index 0
+#+begin_src patch
+myprint <- function(y) {
++ print(x)
+  print(y)
+}
+
+- print(x)
+#+end_src
+
+
+#+ATTR_REVEAL: :code_attribs data-line-numbers='3' :frag fade-in  :data-fragment-index 1
 #+begin_src R :results output :exports both
 x <- 'foobar'
 myfunc <- function(y) {
@@ -94,16 +148,17 @@ myfunc <- function(y) {
 myfunc("lorem ipsum")
 #+end_src
 
-#+ATTR_REVEAL: :frag (roll-in)
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 3
 #+RESULTS:
 : [1] "foobar"
 : [1] "lorem ipsum"
 
+{{{mpoll(This code will, <li>error out</li> <li>print foobar</li>, data-fragment-index=2)}}}
+
 *** Global are scary
-
-#+REVEAL_HTML: <div class="poll fragment"> <h1>myfunc will print</h1> <ul> <li>foobar</li> <li data-poll="correct">fizzbuz</li> <li data-poll="correct">R will give an error message</li> </ul> <h2></h2> </div>
-
-#+ATTR_REVEAL: :code_attribs data-line-numbers='6' :frag (roll-in)
+What if we redefine x?
+#+ATTR_REVEAL: :code_attribs data-line-numbers='6'
 #+begin_src R :results output :exports both
 x <- 'foobar'
 myfunc <- function(y) {
@@ -114,11 +169,15 @@ x <- 'fizzbuzz' # redefine after function def
 myfunc("lorem ipsum")
 #+end_src
 
-
 #+ATTR_REVEAL: :frag t
 #+RESULTS:
 : [1] "fizzbuzz"
 : [1] "lorem ipsum"
+
+{{{mpoll(myfunc yeilds,
+        <li>foobar</li> <li data-poll="correct">fizzbuz</li> <li>R will give an error message</li>,
+        data-fragment-index=2)}}}
+
 
 *** local overwrite
 
@@ -128,7 +187,7 @@ Let's add ~x~ to the function.
 + myfunc <- function(x, y) {
 #+end_src
 
-Now there's a workspace global ~x~ *and* ~x~ inside the function
+~x~ is workspace global *and* function local 😱
 
 #+ATTR_REVEAL: :code_attribs data-line-numbers='3'
 #+begin_src R :results output :exports both
@@ -140,25 +199,227 @@ myfunc <- function(x, y) {
 myfunc("LOCAL", "lorem ipsum")
 #+end_src
 
+#+ATTR_REVEAL: :frag t :data-fragment-index 2
 #+RESULTS:
 : [1] "LOCAL"
 : [1] "lorem ipsum"
 
+{{{mpoll(myfunc yeilds,
+        <li data-poll="correct">LOCAL</li> <li>foobar</li> <li>unpredictable</li> <li>R will give an error message</li>,
+        data-fragment-index=1)}}}
+
+*** R: explicit variable names
+
+#+begin_src R :results output :exports both
+x <- 'foobar'
+y <- 'lorem'
+myprint <- function(x, y) print(x) # NB. y not used
+myprint(x=x)
+#+end_src
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 2
+#+RESULTS:
+: [1] "foobar"
+
+{{{mpoll(myfunc yeilds, <li>foobar</li> <li>lorem</li>,
+          data-fragment-index=1)}}}
+
+*** R: explicit variable names
+
+#+ATTR_REVEAL: :code_attribs data-line-numbers='4'
+#+begin_src R :results output :exports both
+x <- 'foobar'
+y <- 'lorem'
+myprint <- function(x, y) print(x) # NB. y not used
+myprint(x=y)
+#+end_src
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 2
+#+RESULTS:
+: [1] "lorem"
+
+
+{{{mpoll(myfunc yeilds, <li>foobar</li> <li>lorem</li>,
+          data-fragment-index=1)}}}
+
 * MATLAB
-:PROPERTIES:
-:reveal_background: ./npac/irons.jpg
-:reveal_background_opacity: 0.3
-:reveal_background_size: 100%
-:END:
+ * public release in 1979 (proprietary, licensed software)
+   * octave open source clone first release 1993
+ * Useful "toolboxes" include ~Fieldtrip~, ~eeglab~,  ~SPM~
+   * SPM25 moved to python! still MATLAB runtime under the hood
+ * Money is in engineering and simulation (Mathwork's Simulink) ?
 
-Irons in the fire
+** Quick Notes
+*** Comments
+ * end with ~;~ to suppress output
+ * ~;~ within an array stats a new row
+ * ~%~ to comment
+ * ~...~ to continue on the next line (a la ~\~ in shell)
+#+begin_src octave :exports both :results output
+x = [1 ... any text after '...' is ignored
+     2]     % same as x = [1 2];
+y = [1; 2], % vertical vector (column vector)
+z = [1, 2]; % semi column ending, output not shown
+#+end_src
 
-* Another thing
-  * is here
-  * and here
+
+#+RESULTS:
+: x =
+:
+:    1   2
+:
+: y =
+:
+:    1
+:    2
+:
+
+*** comma vs semicolon
+
+#+begin_src octave :exports both :results output
+x = [1; ...
+     2]
+y = [1, ...
+     2]
+#+end_src
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 2
+#+RESULTS:
+: x =
+:
+:    1
+:    2
+:
+: y =
+:
+:    1   2
+:
+
+{{{mpoll(is x the same as y, <li>yes</li> <li>no: x is vert</li> <li>no: y is vert</li>, data-fragment-index=1)}}}
 
 
+*** single quote
 
-* backmatter :noexport:
-need to include jquery and poll
+#+begin_src octave :exports both :results output
+x = [1; 2]' % transpose vert to horz
+c = 'this is a string'
+#+end_src
 
+#+RESULTS:
+: x =
+:
+:    1   2
+:
+: c = this is a string
+
+*** Parens
+
+ * functions are called with ~()~ (same as R and python)
+ * arrays index access with ~()~ 🤪 (R, python, shell use ~[]~)
+#+COMMENT: * reference functions with ~@~ prefix (advanced topic)
+
+#+begin_src octave :exports both :results output
+x = [1 2]; % this is an array
+x(2),      % index 1 is first
+mean(x),   % functions called like arrays
+#+end_src
+
+#+RESULTS:
+: ans = 2
+: ans = 1.5000
+
+# TODO: as what x(2) will be
+
+{{{mpoll(why no 'x' in output?, <li>assigned to variable</li> <li>ends with ;</li>, data-fragment-index=1)}}}
+
+** iterate
+#+REVEAL_HTML: <div class="column" style="float:left; width:50%">
+*R*
+#+begin_src R :exports both :results output
+# for loop example
+for(i in 1:3){
+  print(i)
+}
+#+end_src
+
+#+RESULTS:
+: [1] 1
+: [1] 2
+: [1] 3
+
+
+#+REVEAL_HTML: </div><div class="right" style="float:right; width:50%">
+*Matlab*
+#+begin_src octave :exports both :results output
+% for loop example
+for(i=1:3)
+  disp(i);
+end
+#+end_src
+#+RESULTS:
+: 1
+: 2
+: 3
+#+REVEAL_HTML: </div>
+
+** iterate
+
+Using an index to access data is more common in matlab (FORTRAN heritage). Paradigm is
+ - generate a bunch of data in bulk
+ - access it as needed by it's index (vs. by name in a dataframe)
+
+#+begin_src octave :exports both :results output
+x = rand(1, 3),
+for(i = 1:length(x))
+  disp( x(i) );
+end
+#+end_src
+
+#+RESULTS:
+: x =
+:
+:    0.534157   0.045420   0.548919
+:
+: 0.5342
+: 0.045420
+: 0.5489
+
+** vectorize
+for loops are convenient but vectors are fassssst 🐇.
+#+REVEAL_HTML: <div style="float:left; width:50%">
+*bad*
+#+begin_src octave :exports both :results output
+x = [1 1 2 3 5 8];
+for(i = 1:length(x))
+  x3x(i) = 3 * x(i);
+end
+disp(x3x)
+#+end_src
+
+#+RESULTS:
+:     3    3    6    9   15   24
+
+#+REVEAL_HTML: </div><div style="float:right; width:50%">
+*good*
+#+begin_src octave :exports both :results output
+x = [1 1 2 3 5 8];
+x3x = 3 * x;
+disp(x3x);
+#+end_src
+
+#+RESULTS:
+:     3    3    6    9   15   24
+
+#+REVEAL_HTML: </div>
+
+** Functions
+  * one function per file (sort of).
+    * current directory
+    * ~addpath()~
+    * ~private/~
+
+  * ~[out1 out2] = funcname(in1, in2, varargin)~
+
+** Global vs Local
+
+**
