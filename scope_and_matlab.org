@@ -1,7 +1,7 @@
 #+TITLE: Function Scope / MATLAB
 #+REVEAL_THEME: dracula
 #+REVEAL_PLUGINS: (highlight)
-#+REVEAL_EXTRA_SCRIPTS: ("https://code.jquery.com/jquery-3.7.1.min.js" "https://www.xn--4-cmb.com/rpoll/poll.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/audio-slideshow/plugin.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/audio-slideshow/recorder.js" "https://cdnjs.cloudflare.com/ajax/libs/RecordRTC/5.6.2/RecordRTC.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/anything/plugin.js")
+#+REVEAL_EXTRA_SCRIPTS: ("https://code.jquery.com/jquery-3.7.1.min.js" "https://www.xn--4-cmb.com/rpoll/poll.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/audio-slideshow/plugin.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/audio-slideshow/recorder.js" "https://cdnjs.cloudflare.com/ajax/libs/RecordRTC/5.6.2/RecordRTC.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/anything/plugin.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/customcontrols/plugin.js")
 #+REVEAL_EXTRA_CSS: https://www.xn--4-cmb.com/rpoll/poll.css
 #+REVEAL_HIGHLIGHT_CSS_IGNORE: reveal.js/plugin/highlight/monokai.css
 #+PROPERTY: HEADER-ARGS+ :eval no-export
@@ -15,6 +15,8 @@ setup reveal.js
 (use-package oer-reveal :ensure t) ; export backend -- doesn't work? above does?
 (setq org-reveal-root "/home/foranw/src/work/present/reveal.js/")
 (setq oer-reveal-plugin-4-config "") ; remove RevealAudio
+
+(setq org-babel-R-command "R --slave --no-save --vanilla")
 #+end_src
 
 org capture into
@@ -56,6 +58,7 @@ mv reveal.js-master reveal.js
 
 #+begin_src bash :results none
 test -r oer-reveal || git clone https://gitlab.com/oer/oer-reveal
+test -r org-re-reveal || git clone git@gitlab.com:will.foran/org-re-reveal.git
 #+end_src
 
 
@@ -90,18 +93,109 @@ https://www.xn--4-cmb.com/rpoll
 #+REVEAL_HTML: <div class="poll fragment" style="position: relative; right: auto; bottom: auto; width: auto;"> <b>Polling ... </b> <ul> <li>is engaging</li> <li>refines instruction</li> <li>set up time ≫ utility </li> <li>kills the vibe</li> </ul> <h2></h2> </div>
 
 * Function Scope
+
+** local-only scope
 #+ATTR_HTML: :height 300
 [[file:scope/lionking_beyond.webp]]
 
+*** example function
+
+#+begin_src R :results output :exports both
+myprint <- function(x) {
+  inc_val <- 1
+  print(x + inc_val)
+}
+myprint(1)
+#+end_src
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 3
+#+RESULTS:
+: [1] 2
+
+{{{mpoll(output is, <li>2</li>, data-fragment-index=2)}}}
+
+*** restricted
+
+#+ATTR_REVEAL: :code_attribs data-line-numbers='6,7'
+#+begin_src R :results none :exports both
+myprint <- function(x) {
+  inc_val <- 1
+  print(x + inc_val)
+}
+myprint(1)
+print(inc_val)
+print(x)
+#+end_src
+
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 3
+ #+begin_example
+ object 'inc_val' not found
+ object 'x' not found
+ #+end_example
+
+{{{mpoll(output is, <li>1 1</li>  <li>error</li>, data-fragment-index=2)}}}
+
+
+*** default params
+
+#+REVEAL_HTML: <div class="column" style="float:left; width:45%">
+#+begin_src R :results output :exports both
+myprint <- function(x) {
+  inc_val <- 1
+  print(x + inc_val)
+}
+#+end_src
+
+#+REVEAL_HTML: </div><div class="right" style="float:right; width:55%">
+#+begin_src R :results output :exports both
+myprint <- function(x, inc_val=1) {
+  print(x + inc_val)
+}
+#+end_src
+#+REVEAL_HTML: </div>
+
+*** ls()
+
+#+begin_src R :results output :exports both :van
+x <- 1
+myprint <- function(x, inc_val=1) {
+  print(x + inc_val)
+}
+
+ls()
+#+end_src
+
+#+RESULTS:
+: [1] "myprint" "x"
+
+
+*** ls() #2
+
+#+begin_src R :results output :exports both :van
+x <- 1
+myprint <- function(x, inc_val=1) {
+  y <- 3
+  print(x + inc_val)
+}
+
+ls()
+#+end_src
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 3
+#+RESULTS:
+: [1] "myprint" "x"
+
+{{{mpoll(ls() has, <li>myprint x</li> <li>myprint x y</li>, data-fragment-index=2)}}}
+
+** Globals
 #+ATTR_HTML: :height 300
 [[file:scope/3mouse.jpg]]
 
-
-** Globals
 *** global x
 R code setting "global" workspace variable ~x~ and function ~myprint~
 
-#+ATTR_HTML: :class fragment FINDMEEXAMPLE
+#+ATTR_HTML: :class fragment
 #+NAME: global_x
 #+begin_src R :results output :exports both
 # define them
@@ -189,7 +283,7 @@ Let's add ~x~ to the function.
 
 ~x~ is workspace global *and* function local 😱
 
-#+ATTR_REVEAL: :code_attribs data-line-numbers='3'
+#+ATTR_REVEAL: :code_attribs data-line-numbers='3,6'
 #+begin_src R :results output :exports both
 x <- 'foobar'
 myfunc <- function(x, y) {
@@ -205,7 +299,7 @@ myfunc("LOCAL", "lorem ipsum")
 : [1] "lorem ipsum"
 
 {{{mpoll(myfunc yeilds,
-        <li data-poll="correct">LOCAL</li> <li>foobar</li> <li>unpredictable</li> <li>R will give an error message</li>,
+        <li data-poll="correct">LOCAL</li> <li>foobar</li> <li>unpredictable</li> <li>R will error</li>,
         data-fragment-index=1)}}}
 
 *** R: explicit variable names
@@ -240,6 +334,56 @@ myprint(x=y)
 
 
 {{{mpoll(myfunc yeilds, <li>foobar</li> <li>lorem</li>,
+          data-fragment-index=1)}}}
+
+
+*** R: update global
+
+#+begin_src R :results output :exports both
+x <- 1
+update_x <- function(x) {
+   x <- x +1
+   print(x)
+}
+update_x(x)
+print(x)
+#+end_src
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 2
+#+RESULTS:
+: [1] 2
+: [1] 1
+
+
+{{{mpoll(prints,
+  <li>1 2</li>
+  <li>2 1</li>
+  <li>2 2</li>,
+          data-fragment-index=1)}}}
+
+
+
+*** R: update global
+*Do not do this*
+#+begin_src R :results output :exports both
+x <- 1
+update_x <- function(x) {
+   x <<- x +1 # '<<-' updates global state
+   print(x)
+}
+update_x(x)
+print(x)
+#+end_src
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 2
+#+RESULTS:
+: [1] 1
+: [1] 2
+
+{{{mpoll(prints,
+  <li>1 2</li>
+  <li>2 1</li>
+  <li>2 2</li>,
           data-fragment-index=1)}}}
 
 * MATLAB
@@ -412,6 +556,34 @@ disp(x3x);
 
 #+REVEAL_HTML: </div>
 
+** Script
+ * scripts have all variables in global workspace
+ * ~whos~ to see "Workspace" in command window
+ * ~clear all~ to empty "
+*** whos
+#+begin_src octave :exports both :results output
+x = 1;
+whos
+disp('-----')
+clear all
+whos
+#+end_src
+
+#+RESULTS:
+#+begin_example
+Variables visible from the current scope:
+
+variables in scope: top scope
+
+  Attr   Name        Size                     Bytes  Class
+  ====   ====        ====                     =====  =====
+         x           1x1                          8  double
+
+Total is 1 element using 8 bytes
+
+-----
+#+end_example
+
 ** Functions
   * one function per file (sort of).
     * current directory
@@ -420,6 +592,17 @@ disp(x3x);
 
   * ~[out1 out2] = funcname(in1, in2, varargin)~
 
+
 ** Global vs Local
 
-**
+** Cells
+
+** Structs
+
+*** looping over fieldnames
+
+** anonymous functions
+
+*** examples
+*** cellfun
+*** assignments
