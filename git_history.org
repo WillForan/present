@@ -1,0 +1,269 @@
+#+TITLE: Function Scope / MATLAB
+#+REVEAL_THEME: dracula
+#+REVEAL_PLUGINS: (highlight)
+#+REVEAL_EXTRA_SCRIPTS: ("https://code.jquery.com/jquery-3.7.1.min.js" "https://www.xn--4-cmb.com/rpoll/poll.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/audio-slideshow/plugin.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/audio-slideshow/recorder.js" "https://cdnjs.cloudflare.com/ajax/libs/RecordRTC/5.6.2/RecordRTC.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/anything/plugin.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/customcontrols/plugin.js")
+#+REVEAL_EXTRA_CSS: https://www.xn--4-cmb.com/rpoll/poll.css
+#+REVEAL_HIGHLIGHT_CSS_IGNORE: reveal.js/plugin/highlight/monokai.css
+#+PROPERTY: HEADER-ARGS+ :eval no-export
+#+OPTIONS:  toc:nil
+* frontmatter :noexport:
+** emacs
+setup reveal.js
+#+begin_src elisp :results none
+; 20250202  org-re-reveal didn't work. install from mela with oer-reveal (but not loaded?) and does work,
+(use-package org-re-reveal :ensure t) ; fork of org-reveal
+(use-package oer-reveal :ensure t) ; export backend -- doesn't work? above does?
+(setq org-reveal-root "/home/foranw/src/work/present/reveal.js/")
+(setq oer-reveal-plugin-4-config "") ; remove RevealAudio
+
+(setq org-babel-R-command "R --slave --no-save --vanilla")
+#+end_src
+
+org capture into
+#+begin_src elisp :results none
+(setq-local org-download-image-dir "./git/")
+#+end_src
+
+
+*** adding fragments to src
+#+begin_src  :eval never :resutls none
+(defun org-re-reveal-fixed-width (fixed-width _contents _info)
+  "Transcode a FIXED-WIDTH element from Org to HTML.
+CONTENTS is nil.  INFO is a plist holding contextual information."
+  (message "hi!")
+  (let* ((attr-html (org-export-read-attribute :attr_html fixed-width))
+         (attr-string (if attr-html
+                          (concat
+                           " " (org-html--make-attribute-string attr-html))
+                        ""))
+         (label (let ((lbl (org-element-property :name fixed-width)))
+                    (if (not lbl) ""
+                      (format " id=\"%s-results\"" lbl))))
+         (pre-tag (format "<pre %s%s>"
+                          (if attr-html attr-string)
+                          label)))
+    (format "%s\n%s</pre>" pre-tag (org-html-do-format-code
+                                    (org-remove-indentation
+                                     (org-element-property :value fixed-width))))))
+#+end_src
+** browser
+for firefox open about:config and set security.fileuri.strict to false
+** reveal.js
+#+begin_src bash :results none
+test -d reveal.js/  && exit 0
+[ ! -r reveal.js.zip ] && wget https://github.com/hakimel/reveal.js/archive/master.zip -O reveal.js.zip
+unzip reveal.js.zip # reveal.js-master/{dist,plugin}
+mv reveal.js-master reveal.js
+#+end_src
+
+#+begin_src bash :results none
+test -r oer-reveal || git clone https://gitlab.com/oer/oer-reveal
+test -r org-re-reveal || git clone git@gitlab.com:will.foran/org-re-reveal.git
+#+end_src
+
+
+** poll
+git@github.com:jschildgen/reveal.js-poll-plugin.git added to https://www.xn--4-cmb.com/rpoll
+where poll.js was modified
+
+use like
+
+#+begin_html
+<div class="poll fragment" style="bottom:50px">
+ <h1>What is the question?</h1>
+ <ul>
+   <li>Wrong answer</li>
+   <li data-poll="correct">Correct answer</li>
+ </ul>
+ <h2></h2>
+</div>
+#+end_html
+
+
+Or with ~#+REVEAL_HTML:~?
+
+#+MACRO: mpoll #+REVEAL_HTML:<div class="poll fragment" $3 style="position: relative; right: auto; bottom: auto; width: auto;"> <h1>$1</h1> <ul>$2</ul> <h2></h2> </div>
+
+** noweb git
+
+=<<git_init>>= is placeholder for
+
+#+NAME: git_init
+#+begin_src bash :results none :eval never
+EDITOR=":"
+GTMP=/tmp/mygit-1
+mkdir -p ${GTMP}
+cd ${GTMP}
+! test -r .git && git init
+#+end_src
+
+
+=<<git_reset>>= is
+
+#+NAME: git_reset
+#+begin_src bash :noweb yes :eval never
+GTMP=/tmp/mygit-1
+test -r $GTMP && rm -r $GTMP
+<<git_init>>
+#+end_src
+
+* Git Interactive
+
+https://happygitwithr.com/workflows-intro
+
+Bring your computer! Myapps to rhea if windows.
+
+https://www.xn--4-cmb.com/rpoll
+
+{{{mpoll(polling..., <li>yes!</li><li>not again</li>)}}}
+
+
+* git review
+add, commit (, push) cycle
+#+begin_src bash
+git init # once, creates .git/
+
+date > myfile.txt
+
+git add myfile.txt
+git commit -m "new date in myfile"
+# git push -- not today. all local
+
+date > myfile.txt # change file
+git add myfile.txt
+git commit -m "new date in myfile"
+#+end_src
+
+* locally: setup
+
+In a terminal, go to temp and start a new directory
+#+begin_src bash
+cd /tmp
+mkdir gittest
+cd gittest
+#+end_src
+
+{{{mpoll(What comes next,
+  <li>git init</li>
+  <li>git add</li>
+  <li>git diff</li>
+  <li>git status</li>, data-fragment-index=2)}}}
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 3
+#+begin_src bash
+git init
+#+end_src
+
+** add a file
+#+begin_src bash :session git1 :noweb yes :results none :exports none
+<<git_reset>>
+#+end_src
+
+What's status of our new repo?
+#+begin_src bash :session git1 :results verbatim :exports both
+date > myfile.txt
+git add myfile.txt
+git status
+#+end_src
+
+#+RESULTS:
+: On branch main
+:
+: No commits yet
+:
+: Changes to be committed:
+:   (use "git rm --cached <file>..." to unstage)
+: 	new file:   myfile.txt
+
+{{{mpoll(added a file -- what next?,
+  <li>git commit</li>
+  <li>git log</li>
+  <li>git diff</li>
+  <li>git init</li>, data-fragment-index=1)}}}
+
+
+** Commit
+#+begin_src bash :session git1 :results none
+git commit  # launch editor       OR
+git commit -m "date change in myfile"
+#+end_src
+
+
+
+#+DOWNLOADED: screenshot @ 2025-02-24 16:43:47
+#+REVEAL_HTML: <div class="column" style="float:left; width:50%">
+#+ATTR_HTML: :width 300px
+[[file:git/locally:_setup/2025-02-24_16-43-47_screenshot.png]]
+@@html: <small>@@ ~i~ to write ~esc :wq~ to save @@html: </small>@@
+
+#+REVEAL_HTML: </div><div class="column" style="float:right; width:50%">
+#+ATTR_HTML: :width 300px
+[[file:git/nano_commit.png]]
+
+@@html: <small>@@ write ~Ctrl+w~ to save; ~Ctrl+x~ @@html: </small>@@
+#+REVEAL_HTML: </div>
+
+** log
+#+begin_src bash :session git1 :results verbatim :exports both
+git log --oneline
+#+end_src
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 1
+#+RESULTS:
+: 242a756 (HEAD -> main) date change in myfile
+
+
+{{{mpoll(log results, <li>empty</li><li>line per commit (one line)</li><li>line per add (many)</li>,data-fragment-index=2)}}}
+
+* Update a file
+
+#+begin_src bash :session git1 :results verbatim :exports both
+date > myfile.txt
+git diff
+#+end_src
+
+#+RESULTS:
+: diff --git a/myfile.txt b/myfile.txt
+: index 6dc733d..f936224 100644
+: --- a/myfile.txt
+: +++ b/myfile.txt
+: @@ -1 +1 @@
+: -Mon Feb 24 05:10:57 PM EST 2025
+: +Mon Feb 24 05:16:06 PM EST 2025
+
+** Update git
+Changed a file, now what
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 2
+#+begin_src bash :session git1 :results verbatim :exports both :results none
+git add myfile.txt
+#+end_src
+
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 3
+#+begin_src bash :session git1 :results verbatim :exports both
+git commit -m 'oops wrong date, updated again'
+#+end_src
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 3
+#+RESULTS:
+: [main 6dee62e] oops wrong date, updated again
+:  1 file changed, 1 insertion(+), 1 deletion(-)
+
+{{{mpoll(how to track change: git, <li>init + commit</li><li>add + commit</li><li>status + add</li><li>add + push</li>,data-fragment-index=1)}}}
+
+** log
+
+#+begin_src bash :session git1 :results verbatim :exports both
+git log --oneline
+#+end_src
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 1
+#+RESULTS:
+: 6dee62e (HEAD -> main) oops wrong date, updated again
+: 242a756 date change in myfile
+
+
+{{{mpoll(log results #2, <li>empty</li><li>one history = one line</li><li>2 commits=2 lines</li>,data-fragment-index=2)}}}
+* Done!
+phew!
