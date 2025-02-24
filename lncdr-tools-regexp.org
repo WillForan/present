@@ -1,0 +1,215 @@
+#+TITLE: LNCDR & tools
+#+OPTIONS: reveal_single_file:t toc:nil
+#+MACRO: a @@html: <span class="fragment" data-fragment-index="$2">$1</span>@@
+* Front matter  :noexport:
+** key display
+consider using =screenkey=
+** setup
+#+begin_src elisp :results none
+(use-package ox-reveal :ensure t)
+(use-package oer-reveal :ensure t)
+(setq org-reveal-root "/home/foranw/src/work/present/reveal.js/")
+
+#+end_src
+
+#+begin_src bash :results none
+test -d reval.js && exit 0
+wget https://github.com/hakimel/reveal.js/archive/refs/tags/5.1.0.zip
+unzip 5.1.0.zip && rm 5.1.0.zip
+mv reveal.js-5.1.0 reveal.js
+#+end_src
+* LNCDR
+** gam_growthrate
+
+[[https://github.com/LabNeuroCogDevel/LNCDR/blob/master/img/gam_deriv_btc.png?raw=true]]
+ > For better/more plotting facilities, see [[https://cloud.r-project.org/web/packages/tidygam/vignettes/get-started.html][=tidygam=]] and [[https://github.com/stefanocoretta/tidymv][=tidymv=]] (=predict_gam= and [[https://cran.r-project.org/web/packages/tidymv/vignettes/plot-smooths.html][=plot_smooths=]]), [[https://fromthebottomoftheheap.net/2018/10/23/introducing-gratia/][=gratia=]], and/or [[https://strengejacke.github.io/ggeffects/][=ggeffects=]]. There's also a nice tutorial by [[https://github.com/bart-larsen/GAMM-Tutorial/][Bart Larsen]].
+
+
+https://cran.r-project.org/web/packages/tidymv/vignettes/plot-smooths.html
+
+#+DOWNLOADED: screenshot @ 2024-11-19 09:32:00
+[[file:LNCDR/2024-11-19_09-32-00_screenshot.png]]
+
+https://strengejacke.github.io/ggeffects/
+#+DOWNLOADED: screenshot @ 2024-11-19 09:30:46
+[[file:LNCDR/2024-11-19_09-30-46_screenshot.png]]
+
+
+* lncdtools
+
+**
+#+begin_src bash
+ls ~/src/work/lncdtools
+#+end_src
+
+#+RESULTS:
+| 3dDeconLogGLTs    |
+| 3dmaskave_grp     |
+| 3dMinStdClust     |
+| 3dNotes_each      |
+| 3dSeedCorr        |
+| 4dConcatDataTable |
+| 4dConcatSubBriks  |
+| add-intended-for  |
+| afni_atlas_jump   |
+| afni_picker       |
+| automask_cnt      |
+| bet-some          |
+| cat_skiphead      |
+| censor_1d         |
+| CITATION.cff      |
+| coverage_mask     |
+| cp-date           |
+| D                 |
+| dcmdirtab         |
+| dcmtab_bids       |
+| dist              |
+| Dockerfile        |
+| docs              |
+| dryrun            |
+| drytee            |
+| edf2asc           |
+| eptxt             |
+| fd_calc           |
+| fixto1809c        |
+| fixto1809c_quick  |
+| fsllut_to_afni    |
+| get_ld8_age.R     |
+| gitver            |
+| glassbrain_roi    |
+| gsheets           |
+| iffmain           |
+| img_bg_rm         |
+| ld8               |
+| ld8info           |
+| lncddb            |
+| lncdid            |
+| Makefile          |
+| maskvolume        |
+| melanin_align     |
+| mkdocs.yml        |
+| mkifdiff          |
+| mkls              |
+| mkmissing         |
+| mknii             |
+| mkstat            |
+| ml                |
+| motion_mean       |
+| mrdb              |
+| niigif            |
+| niinote           |
+| pet_scan_age.R    |
+| r                 |
+| README.md         |
+| rename-recent     |
+| rhea_user         |
+| seed_corr         |
+| selld8            |
+| src               |
+| startafni.sh      |
+| startsuma.sh      |
+| t                 |
+| tat2              |
+| tedana_deriv      |
+| tsnr              |
+| V                 |
+| verb              |
+| waitforjobs       |
+| warn              |
+
+
+** ld8
+#+begin_src bash
+ld8 <<< ablah/12345_20201231
+#+end_src
+
+#+RESULTS:
+: 12345_20201231
+
+#+begin_src bash
+echo ablah/12345_20201231 ablah/54321_20201231 | ld8
+#+end_src
+
+#+RESULTS:
+| 12345_20201231 |
+| 54321_20201231 |
+
+#+begin_src bash
+ld8 ablah/12345_20201231 ablah/54321_20201231
+#+end_src
+
+#+RESULTS:
+| 12345_20201231 |
+| 54321_20201231 |
+
+** selld8
+#+begin_src bash :dir /ssh:rhea:
+export PATH=$PATH:/opt/ni_tools/lncdtools
+selld8  l |grep Habit |head -n2
+#+end_src
+
+#+RESULTS:
+| 12110_20241008 | 14.0 | F | Behavioral | HabitR37 |   | 1 |
+| 12090_20241005 | 10.5 | M | Scan       | HabitR37 |   | 1 |
+
+#+begin_src bash :dir /ssh:rhea:
+export PATH=$PATH:/opt/ni_tools/lncdtools
+selld8  l |grep Habit |head -n2 | ld8
+#+end_src
+
+#+RESULTS:
+| 12110_20241008 |
+| 12090_20241005 |
+
+** ld8info
+
+#+begin_src bash :dir /ssh:rhea:
+export PATH=$PATH:/opt/ni_tools/lncdtools
+ld8info 10931_20241119
+#+end_src
+
+#+RESULTS:
+| ld8            |   age | sex |        dob |
+| 10931_20241119 | 38.39 | M   | 1986-07-01 |
+
+
+
+#+begin_src bash :dir /ssh:rhea:
+export PATH=$PATH:/opt/ni_tools/lncdtools
+selld8  l |grep Habit |head -n1 | ld8 |xargs ld8info
+#+end_src
+
+#+RESULTS:
+| ld8            |   age | sex |        dob |
+| 12110_20241008 | 13.98 | F   | 2010-10-15 |
+
+** dryrun
+#+begin_src bash
+DRYRUN=1 dryrun ls ~/src/work/lncdtools
+#+end_src
+
+#+RESULTS:
+: ls /home/foranw/src/work/lncdtools
+
+#+begin_src bash
+dryrun ls ~/src/work/lncdtools  |head -n2
+#+end_src
+
+#+RESULTS:
+| 3dDeconLogGLTs |
+| 3dmaskave_grp  |
+
+
+** 3dmaskave
+3dROIstats is faster and better! but output is harder and not parallel
+3dmaskave_grp is alternative
+
+
+** lncddb
+#+begin_src bash :dir /ssh:rhea:
+export PATH=$PATH:/opt/ni_tools/lncdtools
+lncddb  "select * from person natural join enroll where lname ilike 'Foran';"
+#+end_src
+
+#+RESULTS:
+| 690 | Will | Foran | 1986-07-01 | M | R |   |   |   | 1505 | LunaID | 10931 | 2012-02-02 |

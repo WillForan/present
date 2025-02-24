@@ -7,6 +7,7 @@ consider using =screenkey=
 ** setup
 #+begin_src elisp :results none
 (use-package ox-reveal :ensure t)
+(use-package oer-reveal :ensure t)
 #+end_src
 
 #+begin_src bash :results none
@@ -62,7 +63,23 @@ easy mode tmux (written in rust)
 
 
 * tmux
- * prefix key to issue commands to the
+** prefix key
+ prefix key to issue commands to tmux instead of the shell
+   * C-c - tells bash to end current process (kill)
+   * C-b C-c - tells tmux to create a new window
+   * C-b C-b - tells tmux to send C-b to shell (back character)
+
+** attach/detach
+  * C-b d - detach
+  * `tmux attach` to get back
+    * C-b
+
+** splits
+  C-b %
+  C-
+** copy mode
+  * C-b  [ - enter copy mode
+  * C-b  ] - copy
 
 * alternatives
 ** screen

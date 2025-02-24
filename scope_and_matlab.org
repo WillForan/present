@@ -82,7 +82,7 @@ use like
 
 Or with ~#+REVEAL_HTML:~?
 
-#+MACRO: mpoll #+REVEAL_HTML:<div class="poll fragment" $3 style="position: relative; right: auto; bottom: auto; width: auto;"> <b>$1</b> <ul>$2</ul> <h2></h2> </div>
+#+MACRO: mpoll #+REVEAL_HTML:<div class="poll fragment" $3 style="position: relative; right: auto; bottom: auto; width: auto;"> <h1>$1</h1> <ul>$2</ul> <h2></h2> </div>
 
 * Poll Test
 Hey look it's interactive!
@@ -98,6 +98,7 @@ https://www.xn--4-cmb.com/rpoll
 #+ATTR_HTML: :height 300
 [[file:scope/lionking_beyond.webp]]
 
+{{{mpoll(meme, <li>wut?</li><li>I get it!</li> <li>I get it but it's not funny</li>, data-fragment-index=2)}}}
 *** example function
 
 #+begin_src R :results output :exports both
@@ -187,6 +188,13 @@ ls()
 : [1] "myprint" "x"
 
 {{{mpoll(ls() has, <li>myprint x</li> <li>myprint x y</li>, data-fragment-index=2)}}}
+
+
+** memes
+#+ATTR_HTML: :height 300
+[[file:scope/lionking_beyond.webp]]
+
+{{{mpoll(funny now, <li>wut?</li><li>I get it!</li> <li>I get it but it's not funny</li>, data-fragment-index=2)}}}
 
 ** Globals
 #+ATTR_HTML: :height 300
@@ -389,9 +397,18 @@ print(x)
 * MATLAB
  * public release in 1979 (proprietary, licensed software)
    * octave open source clone first release 1993
- * Useful "toolboxes" include ~Fieldtrip~, ~eeglab~,  ~SPM~
-   * SPM25 moved to python! still MATLAB runtime under the hood
  * Money is in engineering and simulation (Mathwork's Simulink) ?
+ * [[https://www.cs.cmu.edu/~dst/Tutorials/Matlab/matlab-day1-handout.pdf][cnbc min course]] (Touretzky, c. 2023)
+
+** LNCD usage
+
+ Useful "toolboxes" include
+  * ~Fieldtrip~ and ~eeglab~
+  * ~SPM~
+   * SPM25 moved to python! still MATLAB runtime under the hood
+  * ~pyschtoolbox~ for task presentation
+  * Hc and PFC MRSI GUIs
+    * graphic interfaces "easy" to build in matlab
 
 ** Quick Notes
 *** Comments
@@ -456,10 +473,45 @@ c = 'this is a string'
 :
 : c = this is a string
 
+*** Implied quotes
+without ~()~, matlab assumes first word is command and second is in quotes
+#+begin_src octave :exports both :results output
+cd /tmp    % same as cd("/tmp")
+pwd
+
+% example with quotes
+cd("~")
+pwd
+#+end_src
+
+#+RESULTS:
+: ans = /tmp
+: ans = /home/foranw
+
+*** maybe always use quotes
+
+#+begin_src octave :exports both :results output
+x = 1;
+disp x
+#+end_src
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 2
+#+RESULTS:
+: x
+
+{{{mpoll(output will be, <li>error</li> <li>1</li> <li>x</li>, data-fragment-index=1)}}}
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 1
+#+begin_src octave :exports both :results output :eval never
+disp("x")  % same as 'disp x'
+#+end_src
+
+
 *** Parens
 
  * functions are called with ~()~ (same as R and python)
  * arrays index access with ~()~ 🤪 (R, python, shell use ~[]~)
+   * ~{}~ and ~()~ used for cells (foreshadowing)
 #+COMMENT: * reference functions with ~@~ prefix (advanced topic)
 
 #+begin_src octave :exports both :results output
@@ -475,6 +527,415 @@ mean(x),   % functions called like arrays
 # TODO: as what x(2) will be
 
 {{{mpoll(why no 'x' in output?, <li>assigned to variable</li> <li>ends with ;</li>, data-fragment-index=1)}}}
+
+*** ranges
+Matlab requires explicit ~:~ for "all columns"
+#+REVEAL_HTML:<div style="float:left; width:50%">
+*R*
+#+begin_src R :exports both :results output
+print( x <- matrix(1:4,nrow=2) )
+print(x[,2]) # same as 'x[1:2, 2]'
+#+end_src
+
+#+RESULTS:
+:      [,1] [,2]
+: [1,]    1    3
+: [2,]    2    4
+: [1] 3 4
+
+
+#+REVEAL_HTML: </div><div class="right" style="float:right; width:50%">
+*Matlab*
+#+begin_src octave :exports both :results output
+x = reshape(1:4, [2,2])
+col = x(:, 2) % same as 'x(1:2, 2)'
+#+end_src
+#+RESULTS:
+#+begin_example
+x =
+
+   1   3
+   2   4
+
+col =
+
+   3
+   4
+
+#+end_example
+#+REVEAL_HTML: </div>
+
+*** ~end~
+~end~ keyword is shortcut for ~length()~
+#+begin_src octave :exports both :results output
+x = [2 3 4];
+x_sub = x(2:end) % x(2:length(x))
+#+end_src
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 3
+#+RESULTS:
+: x_sub =
+:
+:    3   4
+:
+
+{{{mpoll(output is,
+  <li>2 3 4</li>
+  <li>3 4</li>
+  <li>4</li>
+  <li>???</li>, data-fragment-index=2)}}}
+
+*** logical
+ * *~=* is ~!=~ in most other languages
+ * ~0~ is false, ~1~ is true
+
+#+begin_src octave :exports both :results output
+x         = [3 4 5 6];
+not_gt4   =  ~ (x > 4)
+not_4     =  x ~= 4
+not_empty = ~isempty(x)
+#+end_src
+
+#+RESULTS:
+: not_gt4 =
+:
+:   1  1  0  0
+:
+: not_4 =
+:
+:   1  0  1  1
+:
+: not_empty = 1
+
+*** logical range
+
+#+begin_src octave :exports both :results output
+x = 3:6;
+x(x > 4)
+x(x > 4) = 4 % set max to 4
+#+end_src
+
+#+RESULTS:
+: ans =
+:
+:    5   6
+:
+: x =
+:
+:    3   4   4   4
+:
+
+** Cells
+cells are like lists in R. They can store any number of any type.
+#+begin_src octave :exports both :results output
+y = {3, 'fizz', 4:5},
+#+end_src
+
+#+RESULTS:
+#+begin_example
+y =
+{
+  [1,1] = 3
+  [1,2] = fizz
+  [1,3] =
+
+     4   5
+
+}
+
+#+end_example
+
+*** cell check in
+
+#+begin_src octave :exports both :results output
+y = {1:4, 'lorem ipsum', 100:200};
+length(y)
+#+end_src
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 3
+#+RESULTS:
+: ans = 3
+
+{{{mpoll(how many elements does y have?,
+  <li>1</li>
+  <li>3</li>,
+  data-fragment-index=2)}}}
+
+*** length of each element in the cell
+   :PROPERTIES:
+   :reveal_background: pink
+   :END:
+   preview of cellfun
+#+begin_src octave :exports both :results output
+y = {1:4, 'lorem ipsum', 100:200};
+cellfun(@length, y)
+#+end_src
+
+#+RESULTS:
+: ans =
+:
+:      4    11   101
+:
+
+*** Cell Access
+cells indexed 2 ways
+ * ~()~ is cell block. don't want for most situations.
+ * ~{}~ is *value* within. code for cell value sticks out
+#+begin_src octave :exports both :results output
+y = {3, 'fizz', 4:5};
+ascell = y(3),
+asvec = y{3},
+#+end_src
+
+#+ATTR_HTML: :style scale:75%
+#+RESULTS:
+#+begin_example
+ascell =
+{
+  [1,1] =
+
+     4   5
+
+}
+
+asvec =
+
+   4   5
+
+#+end_example
+
+*** Access quiz
+
+#+begin_src octave :exports both :results output
+y = {1:4, 'lorem ipsum', 100:200};
+
+% one of below works the other fail like
+%   'X must be either a numeric, boolean, or character array'
+currly = mean( y{1} )
+paren  = mean( y(1) )
+#+end_src
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 3
+#+RESULTS:
+: currly = 2.5000
+
+{{{mpoll(currly or paren for mean of item,
+  <li>y(1)</li>
+  <li>y{1}</li>,
+  data-fragment-index=2)}}}
+
+
+*** concat cells
+   :PROPERTIES:
+   :reveal_background: #555
+   :END:
+ * ~{:}~ gets all values. can combine
+#+begin_src octave :exports both :results output
+y = { 1:2, 4:5, 10:12};
+as_vec = [ y{:} ] % aka 'horzcat()', can be diff dims
+vec_mean = mean(as_vec)
+#+end_src
+
+#+RESULTS:
+: asvec =
+:
+:     1    2    4    5   10   11   12
+:
+: ans = 6.4286
+
+*** concat cells
+   :PROPERTIES:
+   :reveal_background: #555
+   :END:
+#+begin_src octave :exports both :results output
+z = { 1:3, 4:6, 10:12};
+as_mat = vertcat( z{:} ) % cell dims must match
+col_mean = mean(as_mat, 2)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+as_mat =
+
+    1    2    3
+    4    5    6
+   10   11   12
+
+col_mean =
+
+    2
+    5
+   11
+
+#+end_example
+
+*** dims
+
+**Why**, **Where**!? what change would fix input data?
+#+ATTR_HTML: :style background: crimson
+#+begin_example
+error: cat: dimension mismatch
+#+end_example
+
+#+begin_src octave :exports both :results output
+z = { 1:3, 4:6, 10:12}; % this worked in slide above
+y = { 1:2, 4:5, 10:12}
+as_vec = [ y{:} ];
+as_mat = vertcat( y{:} )
+#+end_src
+
+#+ATTR_HTML: :style scale: 50%
+#+RESULTS:
+#+begin_example
+y =
+{
+  [1,1] =
+
+     1   2
+
+  [1,2] =
+
+     4   5
+
+  [1,3] =
+
+     10   11   12
+
+}
+
+#+end_example
+
+
+
+** Structs
+
+ * ~.~ accesses structure field
+#+begin_src octave :exports both :results output
+% declaritive
+my_stct.f1 = 'a';
+my_stct.f2 = 100;
+my_stct
+
+% inline
+my_stct2 = struct('f1','a', 'f2',101)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+my_stct =
+
+  scalar structure containing the fields:
+
+    f1 = a
+    f2 = 100
+
+my_stct2 =
+
+  scalar structure containing the fields:
+
+    f1 = a
+    f2 = 101
+
+#+end_example
+
+*** Array of structs
+
+#+begin_src octave :exports both :results output
+my_stct(1) = struct('f1','a', 'f2',101);
+my_stct(2) = struct('f1','b', 'f2',12);
+my_stct
+
+f2 = [my_stct.f2]
+#+end_src
+
+#+RESULTS:
+#+begin_example
+my_stct =
+
+  1x2 struct array containing the fields:
+
+    f1
+    f2
+
+f2 =
+
+   101    12
+
+#+end_example
+
+*** Array of structs
+
+#+begin_src octave :exports both :results output
+my_stct = [struct('f1','a', 'f2',101)
+           struct('f1','b', 'f2',12)];
+
+f1 = {my_stct.f1}
+f1_c = [my_stct.f1]
+#+end_src
+
+#+RESULTS:
+: f1 =
+: {
+:   [1,1] = a
+:   [1,2] = b
+: }
+:
+: f1_c = ab
+
+
+*** fieldnames
+
+#+begin_src octave :exports both :results output
+my_stct = struct('f1','a', 'f2',101);
+fieldnames(my_stct)
+#+end_src
+
+#+RESULTS:
+: ans =
+: {
+:   [1,1] = f1
+:   [2,1] = f2
+: }
+:
+
+*** looping over fieldnames
+ * transpose field names for loop
+ * cell element nesting :( ~f{1}~ to undo
+#+begin_src octave :exports both :results output
+my_stct = struct('f1','a', 'f2',101);
+for f = fieldnames(my_stct)'
+  fprintf("%s: %d\n", f{1}, my_stct.(f{1}))
+end
+#+end_src
+
+#+RESULTS:
+: f1: 97
+: f2: 101
+
+*** structs in the wild
+   :PROPERTIES:
+   :reveal_background: pink
+   :END:
+
+#+begin_src octave :exports both :results output
+flist = dir('private/')
+#+end_src
+
+#+RESULTS:
+#+begin_example
+x =
+
+  12x1 struct array containing the fields:
+
+    name
+    folder
+    date
+    bytes
+    isdir
+    datenum
+    statinfo
+
+#+end_example
 
 ** iterate
 #+REVEAL_HTML: <div class="column" style="float:left; width:50%">
@@ -558,6 +1019,7 @@ disp(x3x);
 
 ** Script
  * scripts have all variables in global workspace
+ * ~playground.m~, ~runme.m~ -- tie together functions
  * ~whos~ to see "Workspace" in command window
  * ~clear all~ to empty "
 *** whos
@@ -589,20 +1051,365 @@ Total is 1 element using 8 bytes
     * current directory
     * ~addpath()~
     * ~private/~
+    * output assignments declared at top
 
-  * ~[out1 out2] = funcname(in1, in2, varargin)~
+#+begin_src octave :exports code :eval never
+function [out1] = funcname(in1, in2)
+#+end_src
+cf. *R*
+#+begin_src R :exports code :eval never
+funcname <- function(in1) # out1 never named
+#+end_src
+
+*** Example Func
+
+save a file
+#+begin_src octave :exports code :tangle private/my_ex.m :eval never
+% saved to private/my_ex.m
+function [out] = my_ex(in)
+  r = 0.9560;
+  out = in + r;
+end
+#+end_src
+
+use in command window or script
+#+begin_src octave :exports both :results output
+my_ex(1)
+#+end_src
+
+#+RESULTS:
+: ans = 1.9560
 
 
-** Global vs Local
+*** anonymous functions
+   :PROPERTIES:
+   :reveal_background: #555
+   :END:
+ * for inline anonymous ("lambda") functions
+ * doesn't need a new file
+ * cannot have multiple steps/lines of code
+#+begin_src octave :exports both :results output
+my_xXx = @(foobar) foobar*3;  % same as '@(x) x*3'
 
-** Cells
+my_xXx(4)
+#+end_src
 
-** Structs
+#+RESULTS:
+: ans = 12
 
-*** looping over fieldnames
+https://www.youtube.com/watch?v=GsTOpgABeGY&t=18s
 
-** anonymous functions
+*** variable outputs
+ * functions output more info when asked
+ * ask by specifying more than one output
+#+begin_src octave :exports both :results output
+x_s = sort([3 1 2]),
+#+end_src
 
-*** examples
+#+RESULTS:
+: x_s =
+:
+:    1   2   3
+:
+
+#+begin_src octave :exports both :results output
+[x_s, x_i] = sort([3 1 2]),
+#+end_src
+
+#+RESULTS:
+: x_s =
+:
+:    1   2   3
+:
+: x_i =
+:
+:    2   3   1
+:
+
+*** special func vars
+ * ~varargin~ - right side. unknown/optional num of inputs
+ * ~varargout~ - left side. optional outputs
+ * ~nargin~, ~nargout~ - within function
+
+*** using func vars
+
+#+begin_src octave :exports code :tangle private/argcount.m :eval never
+% saved to private/argcount.m
+function [varargout] = argcount(varargin)
+ disp(nargin);
+ disp(nargout);
+ varargout = varargin; % output is input
+end
+#+end_src
+
+#+begin_src octave :exports both :results output
+x = argcount(1,2,3);
+#+end_src
+
+#+RESULTS:
+: 3
+: 1
+
+#+begin_src octave :exports both :results output
+[x, y, z] = argcount(1,2,3);
+#+end_src
+
+#+RESULTS:
+: 3
+: 3
+
+*** func var quiz
+
+#+begin_src octave :exports both :results output
+[x, y] = argcount(1,2,3,4); % disps nargin, nargout
+#+end_src
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 3
+#+RESULTS:
+: 4
+: 2
+
+{{{mpoll(output is,
+  <li>2 2</li>
+  <li>4 4</li>
+  <li>4 2</li>
+  <li>2 4</li>, data-fragment-index=2)}}}
+
+
+*** dynamic output
+
+#+begin_src octave :exports code :tangle private/evil.m :eval never
+% saved to private/evil.m
+function [varargout] = evil(varargin)
+ if nargout > 1
+    varargout{1} = varargin{2};
+    varargout{2} = 0;
+ else
+    varargout{1} = varargin{1};
+ end
+end
+#+end_src
+
+#+begin_src octave :exports both :results output
+x = evil(1,2,3),
+#+end_src
+
+#+RESULTS:
+: x = 1
+
+#+begin_src octave :exports both :results output
+[x, y] = evil(1,2,3),
+#+end_src
+
+#+RESULTS:
+: x = 2
+: y = 0
+
+*** space sep arguments
+   :PROPERTIES:
+   :reveal_background: #110
+   :END:
+returning to no ~"~ command usage
+#+begin_src octave :exports code :tangle private/mycat.m
+% saved to private/mycat.m
+function [n] = mycat(varargin) n = nargin; end
+#+end_src
+
+#+begin_src octave :exports both :results output
+mycat fizz buzz
+#+end_src
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 3
+#+RESULTS:
+: ans = 2
+
+{{{mpoll(output is,
+  <li>2</li>
+  <li>1</li>
+  <li>??</li>
+  <li>error</li>, data-fragment-index=2)}}}
+
+
+*** cannot assign to variable without quotes
+   :PROPERTIES:
+   :reveal_background: #110
+   :END:
+implied cmd and quotes syntax useful for command window.
+not so much for code
+#+begin_src octave :exports both :results output :eval never
+n = mycat fizz buzz
+#+end_src
+
+#+begin_example
+syntax error
+#+end_example
+
+
+** Scope
+
+*** var name reuse
+   :PROPERTIES:
+   :reveal_background: linear-gradient(to left, #910830, #521623)
+   :END:
+
+#+begin_src octave :exports code :tangle private/sub2.m
+% saved to private/sub2.m
+function [x] = sub2(x); x = x - 2; end
+#+end_src
+
+#+begin_src octave :exports code :tangle private/sub3.m
+% saved to private/sub3.m
+function [x] = sub3(x); x = x - 3; end
+#+end_src
+
+#+begin_src octave :exports both :results output
+x = 7;
+sub2(x),
+sub3(x),
+x,
+#+end_src
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 3
+#+RESULTS:
+: ans = 5
+: ans = 4
+: x = 7
+
+{{{mpoll(output is,
+  <li>5 2 2</li>
+  <li>5 4 7</li>
+  <li>7 7 7</li>
+  <li>error</li>, data-fragment-index=2)}}}
+
+*** Global vs Local
+matlab stricter than R about global variables (yay!)
+#+begin_src octave :exports code :tangle private/add2.m
+% saved to private/add2.m
+function [added] = add2(x)
+  global addbase
+  added = x + 2 + addbase;
+end
+#+end_src
+
+#+begin_src octave :exports both :results output
+global addbase = 3;
+add2(4)
+#+end_src
+
+#+RESULTS:
+: ans = 9
+
+*** persistent keyword
+
+#+begin_src octave :exports code :tangle private/add3.m
+% saved to private/add3.m
+function [added] = add3(x)
+  persistent addbase
+  if isempty(addbase), addbase = 0; end % init on first call
+  addbase = addbase + 1; % increment every function call!
+  added = x + 3 + addbase;
+end
+#+end_src
+
+#+begin_src octave :exports both :results output
+add3(1)
+add3(1)
+#+end_src
+
+#+RESULTS:
+: ans = 5
+: ans = 6
+
+
+** cellfun, arrayfun
+ * use ~@~ to ref or create functions
+ * ~cellfun~ works on cells, ~arrayfun~ on arrays
+   * both default to output arrays
+   * ~UniformOutput,0~ for variable length outputs (cell)
+
+*** example
+#+begin_src octave :results output :exports both
+x = [1 -2 -3 4];
+arrayfun(@sign, x) % same as 'sign(x)'
+#+end_src
+
+#+RESULTS:
+: ans =
+:
+:    1  -1  -1   1
+:
+
+*** example UninformOutput=0
+#+begin_src octave :results output :exports both
+x = [1 2 2];
+arrayfun(@rand, x, 'UniformOutput', 0)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+ans =
+{
+  [1,1] = 0.2129
+  [1,2] =
+
+     8.7922e-03   6.1499e-01
+     8.2587e-01   1.3682e-01
+
+  [1,3] =
+
+     0.435227   0.102539
+     0.063482   0.077147
+
+}
+
+#+end_example
+
+*** structs in the wild
+   :PROPERTIES:
+   :reveal_background: #110
+   :END:
+#+begin_src octave :exports both :results output
+flist = dir('private/');
+fpath = arrayfun(@(f) fullfile(f.folder, f.name),...
+                 flist, 'UniformOutput', 0);
+fpath(3:end-4)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+ans =
+{
+  [1,1] = /home/foranw/src/work/present/private/add2.m
+  [2,1] = /home/foranw/src/work/present/private/add3.m
+  [3,1] = /home/foranw/src/work/present/private/argcount.m
+  [4,1] = /home/foranw/src/work/present/private/evil.m
+  [5,1] = /home/foranw/src/work/present/private/my_ex.m
+  [6,1] = /home/foranw/src/work/present/private/mycat.m
+}
+
+#+end_example
+
 *** cellfun
-*** assignments
+
+#+begin_src octave :results output :exports both
+x = {1:2, 1:10};
+cellfun(@length, x)
+#+end_src
+
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 3
+#+RESULTS:
+: ans =
+:
+:     2   10
+:
+
+{{{mpoll(results are,
+   <li>1 1</li>
+   <li>2 10</li>
+   <li>???</li>,
+   data-fragment-index=2)}}}
+
+
+* Done!
+phew!
