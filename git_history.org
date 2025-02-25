@@ -84,6 +84,11 @@ Or with ~#+REVEAL_HTML:~?
 
 #+MACRO: mpoll #+REVEAL_HTML:<div class="poll fragment $5" $3 style="position: relative; right: auto; bottom: auto; width: auto; $4"> <h1>$1</h1> <ul>$2</ul> <h2></h2> </div>
 
+*** qr code
+#+begin_src bash :eval never
+qrencode -o 4npoll.png https://www.xn--4-cmb.com/rpoll
+#+end_src
+
 ** noweb git
 
 =<<git_init>>= is placeholder for
@@ -111,6 +116,7 @@ test -r $GTMP && rm -r $GTMP
 * Rewrite history
 Bring your computer! Myapps to rhea if windows.
 
+[[file:4npoll.png]]
 https://www.xn--4-cmb.com/rpoll
 
 {{{mpoll(polling..., <li>yes!</li><li>not again</li>)}}}
@@ -168,12 +174,13 @@ git init
 #+end_src
 
 ** Add
-#+begin_src bash :session git1 :noweb yes :results none :exports none
+#+begin_src sh :session git1 :noweb yes :results none :exports none
 <<git_reset>>
 #+end_src
 
+
 What's status of our new repo?
-#+begin_src bash :session git1 :results verbatim :exports both :dir /tmp/mygit-1
+#+begin_src sh :session git1 :results verbatim :exports both :dir /tmp/mygit-1
 date > myfile.txt
 git add myfile.txt
 
@@ -199,7 +206,7 @@ git status
 
 ** Commit
 After ~add~
-#+begin_src bash :session git1 :results none
+#+begin_src sh :session git1 :results none :dir /tmp/mygit-1
 git commit -v # launch editor       OR
 git commit -m "date change in myfile"
 #+end_src
@@ -220,13 +227,13 @@ git commit -m "date change in myfile"
 #+REVEAL_HTML: </div>
 
 ** log
-#+begin_src bash :session git1 :results verbatim :exports both
+#+begin_src sh :session git :results verbatim :exports both :dir /tmp/mygit-1
 git log --oneline
 #+end_src
 
 #+ATTR_REVEAL: :frag t :data-fragment-index 1
 #+RESULTS:
-: a4a07b1 (HEAD -> main) date change in myfile
+: 280591e (HEAD -> main) date change in myfile
 
 
 {{{mpoll(log results, <li>empty</li><li>line per commit (one line)</li><li>line per add (many)</li>,data-fragment-index=2)}}}
@@ -240,12 +247,12 @@ git diff
 
 #+RESULTS:
 : diff --git a/myfile.txt b/myfile.txt
-: index 9fc4392..3d01116 100644
+: index 9990bdb..fb050fc 100644
 : --- a/myfile.txt
 : +++ b/myfile.txt
 : @@ -1 +1 @@
-: -Mon Feb 24 07:10:38 PM EST 2025
-: +Mon Feb 24 07:14:52 PM EST 2025
+: -Tue Feb 25 09:40:45 AM EST 2025
+: +Tue Feb 25 09:41:15 AM EST 2025
 
 ** Update git
 Changed a file, now what
@@ -263,7 +270,7 @@ git commit -m 'oops wrong date, updated again'
 
 #+ATTR_REVEAL: :frag t :data-fragment-index 3
 #+RESULTS:
-: [main d316b4f] oops wrong date, updated again
+: [main bd58bfd] oops wrong date, updated again
 :  1 file changed, 1 insertion(+), 1 deletion(-)
 
 {{{mpoll(how to track change: git, <li>init + commit</li><li>add + commit</li><li>status + add</li><li>add + push</li>,data-fragment-index=1)}}}
@@ -276,8 +283,8 @@ git log --oneline
 
 #+ATTR_REVEAL: :frag t :data-fragment-index 1
 #+RESULTS:
-: d316b4f (HEAD -> main) oops wrong date, updated again
-: a4a07b1 date change in myfile
+: bd58bfd (HEAD -> main) oops wrong date, updated again
+: 280591e date change in myfile
 
 
 {{{mpoll(log results #2, <li>empty</li><li>one history = one line</li><li>2 commits=2 lines</li>,data-fragment-index=2)}}}
@@ -312,7 +319,7 @@ git log --oneline
   cat myfile.txt
   #+end_src
   #+RESULTS:
-  : Mon Feb 24 07:14:52 PM EST 2025
+  : Tue Feb 25 09:41:15 AM EST 2025
 
 
   #+ATTR_REVEAL: :frag fade-up :frag_idx 3
@@ -331,7 +338,7 @@ git log --oneline
   #+end_src
   #+ATTR_REVEAL: :frag t :frag_idx 1
   #+RESULTS:
-  : Mon Feb 24 07:14:52 PM EST 2025
+  : Tue Feb 25 09:41:15 AM EST 2025
 
 @@html: <br> <br> <br> @@
 
@@ -388,17 +395,28 @@ the Ultimate Question of Life, the Universe, and Everything
 
 #+REVEAL_HTML: <div class="column" style="float:left; width:50%; font-size:smaller">
   Initial answer with way too much confidence
-  #+begin_src bash :session git1 :exports both
+  #+begin_src bash :session git1 :exports both :results none
 echo "41" > ans.txt
   #+end_src
 
+
   #+ATTR_REVEAL: :frag t :frag_idx 2
-  #+begin_src bash :session git1 :exports both
+  #+begin_src bash :session git1 :exports both :results verbatim
 git add ans.txt
 git commit -m "41!"
 
 git log --oneline
   #+end_src
+
+  #+ATTR_REVEAL: :frag t :frag_idx 2
+  #+RESULTS:
+  : On branch main
+  : nothing to commit, working tree clean
+  : 638cd27 (HEAD -> main) 41!
+  : c91f01f remove date
+  : bd58bfd oops wrong date, updated again
+  : 280591e date change in myfile
+
 
 {{{mpoll(git commands to track changes?,
    <li>commit+push</li>
@@ -408,30 +426,52 @@ git log --oneline
 
 #+REVEAL_HTML: </div><div class="column fragment" style="float:left; width:50%; font-size:smaller" data-fragment-index=3>
   We were wrong. But history doesn't have to know
-  #+begin_src bash :session git1
+  #+begin_src bash :session git1 :results none
 echo "42" > ans.txt # update
 
 git add ans.txt
 git commit --amend # fix msg to 42
   #+end_src
 
-  #+begin_src bash :session git1 :exports none
+  #+begin_src bash :session git1 :exports results :results verbatim
 # here for presenter to actually commit
 git commit --amend -m "ans is 42!"
   #+end_src
 
-  #+begin_src bash :session git1 :exports both
+  #+RESULTS:
+  : [main a24a5ff] ans is 42!
+  :  Date: Tue Feb 25 09:43:07 2025 -0500
+  :  1 file changed, 1 insertion(+)
+  :  create mode 100644 ans.txt
+
+  #+begin_src bash :session git1 :exports both :results verbatim
 git log --oneline
   #+end_src
+
+  #+RESULTS:
+  : a24a5ff (HEAD -> main) ans is 42!
+  : c91f01f remove date
+  : bd58bfd oops wrong date, updated again
+  : 280591e date change in myfile
 
 #+REVEAL_HTML: </div>
 
 ** fix message
 Don't need an add to adjust a message
-  #+begin_src bash :session git1 :exports both
+  #+begin_src bash :session git1 :exports both :results verbatim
 git commit --amend -m "Hitchhikers reference"
 git log --oneline
   #+end_src
+
+  #+RESULTS:
+  : [main ad925ef] Hitchhikers reference
+  :  Date: Tue Feb 25 09:43:07 2025 -0500
+  :  1 file changed, 1 insertion(+)
+  :  create mode 100644 ans.txt
+  : ad925ef (HEAD -> main) Hitchhikers reference
+  : c91f01f remove date
+  : bd58bfd oops wrong date, updated again
+  : 280591e date change in myfile
 
 
 ** Why?
@@ -448,35 +488,182 @@ git push -f
 
 ** Note on adding
 
-#+begin_src bash
+
+#+REVEAL_HTML: <div class="column" style="float:left; width:50%; font-size:smaller" >
+#+begin_src bash :session git1 :exports both
 git show HEAD:ans.txt # same as cat ans.txt
 #+end_src
 
-#+begin_src bash
+#+REVEAL_HTML: </div><div class="column fragment" style="float:left; width:50%; font-size:smaller" data-fragment-index=2>
+#+RESULTS:
+: 42
+
+#+REVEAL_HTML: </div><div class="column fragment" style="clear:both; float:left; width:50%; font-size:smaller" data-fragment-index=3>
+#+begin_src bash :session git1 :results verbatim :exports both
 echo 100 >> ans.txt
 git diff
 #+end_src
 
-Will this diff be from HEAD?
-#+begin_src bash
+#+REVEAL_HTML: </div><div class="column fragment" style="float:right; width:50%; font-size:smaller" data-fragment-index=3>
+#+RESULTS:
+: diff --git a/ans.txt b/ans.txt
+: index d81cc07..9869a1b 100644
+: --- a/ans.txt
+: +++ b/ans.txt
+: @@ -1 +1,2 @@
+:  42
+: +100
+
+
+#+REVEAL_HTML: </div><div class="column fragment" style="clear:both; float:left; width:50%; font-size:smaller" data-fragment-index=4>
+#+begin_src bash :session git1 :results verbatim :exports both
 git add ans.txt
 echo 200 >> ans.txt
 git diff
 #+end_src
 
-If add's tracking the changes, why ever commit?
+#+REVEAL_HTML: </div><div class="column fragment" style="float:right; width:50%; font-size:smaller" data-fragment-index=5>
+#+RESULTS:
+: diff --git a/ans.txt b/ans.txt
+: index 9869a1b..1d4aa10 100644
+: --- a/ans.txt
+: +++ b/ans.txt
+: @@ -1,2 +1,3 @@
+:  42
+:  100
+: +200
+
+
+#+REVEAL_HTML: </div>
+
+{{{mpoll(<tt>cat</tt>==<tt>git show</tt>,
+   <li>always like that</li>
+   <li>b/c already added</li>
+   <li>b/c already commited</li>,
+   data-fragment-index=1,
+   position:absolute; top: 0px; right:0px; width:50%,
+   fade-in-then-out)}}}
+
+
+{{{mpoll(<tt>diff</tt> of second add,
+   <li>nothing</li>
+   <li>+100 and +200</li>
+   <li>+200</li>,
+   data-fragment-index=4,
+   position:absolute; bottom: 0px; right:0px; width:50%; clear:both,
+   fade-in-then-out)}}}
+
+
+
+** why not always add?
+ If add's tracking the changes, why ever commit?
+
+ #+ATTR_REVEAL: :frag t :frag_idx 1
+  #+begin_src bash :session git1 :exports both :results verbatim
+git log --oneline
+  #+end_src
+
+  #+ATTR_REVEAL: :frag t :frag_idx 1
+  #+RESULTS:
+  : ad925ef (HEAD -> main) Hitchhikers reference
+  : c91f01f remove date
+  : bd58bfd oops wrong date, updated again
+  : 280591e date change in myfile
+
+** blame
+~blame~ shows what commit each line comes from. like ~log~ for inside a file.
+  #+begin_src bash :session git1 :exports both :results verbatim
+git blame -- ans.txt
+  #+end_src
+
+  #+RESULTS:
+  : ad925ef1 (WillForan         2025-02-25 09:43:07 -0500 1) 42
+  : 00000000 (Not Committed Yet 2025-02-25 10:16:11 -0500 2) 100
+  : 00000000 (Not Committed Yet 2025-02-25 10:16:11 -0500 3) 200
+
 
 * rebase
-rebase can move and combine commits. Useful for branches.
+~rebase~ can move and combine commits. Useful for branches (advanced!).
 
-*** Fixup (squash)
+** Clean state
+need to commit all changes before we can rebase
 
-* Bonus
+  #+begin_src bash :session git1 :exports both :results verbatim
+git add ans.txt
+git commit -m 'life has more than one answer'
+echo
+git log --oneline
+  #+end_src
 
-** git blame
-#+begin_src bash
-git blame -- myfile.txt
-#+end_src
+  #+RESULTS:
+  : [main 28342b0] life has more than one answer
+  :  1 file changed, 1 insertion(+)
+  :
+  : 28342b0 (HEAD -> main) life has more than one answer
+  : ad925ef Hitchhikers reference
+  : c91f01f remove date
+  : bd58bfd oops wrong date, updated again
+  : 280591e date change in myfile
+
+** Fixup (squash)
+
+#+REVEAL_HTML: <div class="column" style="float:left; width:50%; font-size:smaller;overflow:scroll">
+  #+begin_src bash :session git1 :exports both :results verbatim
+git log --oneline
+  #+end_src
+
+  #+RESULTS:
+  : 28342b0 (HEAD -> main) life has more than one answer
+  : ad925ef Hitchhikers reference
+  : c91f01f remove date
+  : bd58bfd oops wrong date, updated again
+  : 280591e date change in myfile
+
+  #+begin_src bash :eval never :results none
+git rebase  -i --root
+  #+end_src
+
+[[file:git/rebase_1.png]]
+[[file:git/rebase_fixup.png]]
+
+#+REVEAL_HTML: </div><div class="column" style="float:left; width:50%; font-size:smaller">
+
+  #+ATTR_REVEAL: :frag t :frag_idx 1
+  #+begin_src bash :session git1 :exports both :results verbatim
+git log --oneline
+  #+end_src
+
+  #+ATTR_REVEAL: :frag t :frag_idx 1
+  #+RESULTS:
+  : 24a6e4a (HEAD -> main) life has more than one answer
+  : 3b813ca Hitchhikers reference
+  : 21cc68e remove date
+  : 1a6624c date change in myfile
+
+  #+ATTR_REVEAL: :frag t :frag_idx 2
+  #+begin_src bash :session git1 :exports both :results verbatim: :eval never
+git reflog
+  #+end_src
+
+  #+ATTR_REVEAL: :frag t :frag_idx 2
+  #+RESULTS:
+  #+begin_example
+  24a6e4a (HEAD -> main) HEAD@{0}: rebase (finish): returning to refs/heads/main
+  24a6e4a (HEAD -> main) HEAD@{1}: rebase (pick): life has more than one answer
+  ...
+  9182161 HEAD@{18}: commit (amend): life has more than one answer
+  28342b0 HEAD@{19}: commit: life has more than one answer
+  ad925ef HEAD@{20}: commit (amend): Hitchhikers reference
+  a24a5ff HEAD@{21}: commit (amend): ans is 42!
+  5558c7c HEAD@{22}: commit (amend): ans is 42!
+  b814a96 HEAD@{23}: commit (amend): 41!
+  638cd27 HEAD@{24}: commit: 41!
+  c91f01f HEAD@{25}: commit: remove date
+  bd58bfd HEAD@{26}: commit: oops wrong date, updated again
+  280591e HEAD@{27}: commit (initial): date change in myfile
+  #+end_example
+
+#+REVEAL_HTML: </div>
 
 
 * That's all
