@@ -1,4 +1,4 @@
-#+TITLE: Function Scope / MATLAB
+#+TITLE: Rewriting History
 #+REVEAL_THEME: dracula
 #+REVEAL_PLUGINS: (highlight)
 #+REVEAL_EXTRA_SCRIPTS: ("https://code.jquery.com/jquery-3.7.1.min.js" "https://www.xn--4-cmb.com/rpoll/poll.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/audio-slideshow/plugin.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/audio-slideshow/recorder.js" "https://cdnjs.cloudflare.com/ajax/libs/RecordRTC/5.6.2/RecordRTC.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/anything/plugin.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/customcontrols/plugin.js")
@@ -82,7 +82,7 @@ use like
 
 Or with ~#+REVEAL_HTML:~?
 
-#+MACRO: mpoll #+REVEAL_HTML:<div class="poll fragment" $3 style="position: relative; right: auto; bottom: auto; width: auto;"> <h1>$1</h1> <ul>$2</ul> <h2></h2> </div>
+#+MACRO: mpoll #+REVEAL_HTML:<div class="poll fragment $5" $3 style="position: relative; right: auto; bottom: auto; width: auto; $4"> <h1>$1</h1> <ul>$2</ul> <h2></h2> </div>
 
 ** noweb git
 
@@ -107,20 +107,33 @@ test -r $GTMP && rm -r $GTMP
 <<git_init>>
 #+end_src
 
-* Git Interactive
 
-https://happygitwithr.com/workflows-intro
-
+* Rewrite history
 Bring your computer! Myapps to rhea if windows.
 
 https://www.xn--4-cmb.com/rpoll
 
 {{{mpoll(polling..., <li>yes!</li><li>not again</li>)}}}
 
+* Take home
+
+#+begin_quote
+The past was erased, the erasure was forgotten, the lie became the truth.
+#+end_quote
+
+#+begin_src bash :eval never
+git add myfile.txt
+git commit -v
+vim myfile.txt # opps. fix a typo
+git add myfile
+git commit --amend --no-edit
+#+end_src
+
+https://happygitwithr.com/workflows-intro
 
 * git review
 add, commit (, push) cycle
-#+begin_src bash
+#+begin_src bash :eval never
 git init # once, creates .git/
 
 date > myfile.txt
@@ -134,10 +147,10 @@ git add myfile.txt
 git commit -m "new date in myfile"
 #+end_src
 
-* locally: setup
+* local setup
 
 In a terminal, go to temp and start a new directory
-#+begin_src bash
+#+begin_src bash :eval never
 cd /tmp
 mkdir gittest
 cd gittest
@@ -150,22 +163,24 @@ cd gittest
   <li>git status</li>, data-fragment-index=2)}}}
 
 #+ATTR_REVEAL: :frag t :data-fragment-index 3
-#+begin_src bash
+#+begin_src bash :eval never
 git init
 #+end_src
 
-** add a file
+** Add
 #+begin_src bash :session git1 :noweb yes :results none :exports none
 <<git_reset>>
 #+end_src
 
 What's status of our new repo?
-#+begin_src bash :session git1 :results verbatim :exports both
+#+begin_src bash :session git1 :results verbatim :exports both :dir /tmp/mygit-1
 date > myfile.txt
 git add myfile.txt
+
 git status
 #+end_src
 
+#+ATTR_REVEAL: :frag t :frag_idx 1
 #+RESULTS:
 : On branch main
 :
@@ -179,12 +194,13 @@ git status
   <li>git commit</li>
   <li>git log</li>
   <li>git diff</li>
-  <li>git init</li>, data-fragment-index=1)}}}
+  <li>git init</li>, data-fragment-index=2)}}}
 
 
 ** Commit
+After ~add~
 #+begin_src bash :session git1 :results none
-git commit  # launch editor       OR
+git commit -v # launch editor       OR
 git commit -m "date change in myfile"
 #+end_src
 
@@ -193,12 +209,12 @@ git commit -m "date change in myfile"
 #+DOWNLOADED: screenshot @ 2025-02-24 16:43:47
 #+REVEAL_HTML: <div class="column" style="float:left; width:50%">
 #+ATTR_HTML: :width 300px
-[[file:git/locally:_setup/2025-02-24_16-43-47_screenshot.png]]
+[[file:git/commit_vim.png]]
 @@html: <small>@@ ~i~ to write ~esc :wq~ to save @@html: </small>@@
 
 #+REVEAL_HTML: </div><div class="column" style="float:right; width:50%">
 #+ATTR_HTML: :width 300px
-[[file:git/nano_commit.png]]
+[[file:git/commit_nano.png]]
 
 @@html: <small>@@ write ~Ctrl+w~ to save; ~Ctrl+x~ @@html: </small>@@
 #+REVEAL_HTML: </div>
@@ -210,7 +226,7 @@ git log --oneline
 
 #+ATTR_REVEAL: :frag t :data-fragment-index 1
 #+RESULTS:
-: 242a756 (HEAD -> main) date change in myfile
+: a4a07b1 (HEAD -> main) date change in myfile
 
 
 {{{mpoll(log results, <li>empty</li><li>line per commit (one line)</li><li>line per add (many)</li>,data-fragment-index=2)}}}
@@ -224,12 +240,12 @@ git diff
 
 #+RESULTS:
 : diff --git a/myfile.txt b/myfile.txt
-: index 6dc733d..f936224 100644
+: index 9fc4392..3d01116 100644
 : --- a/myfile.txt
 : +++ b/myfile.txt
 : @@ -1 +1 @@
-: -Mon Feb 24 05:10:57 PM EST 2025
-: +Mon Feb 24 05:16:06 PM EST 2025
+: -Mon Feb 24 07:10:38 PM EST 2025
+: +Mon Feb 24 07:14:52 PM EST 2025
 
 ** Update git
 Changed a file, now what
@@ -247,7 +263,7 @@ git commit -m 'oops wrong date, updated again'
 
 #+ATTR_REVEAL: :frag t :data-fragment-index 3
 #+RESULTS:
-: [main 6dee62e] oops wrong date, updated again
+: [main d316b4f] oops wrong date, updated again
 :  1 file changed, 1 insertion(+), 1 deletion(-)
 
 {{{mpoll(how to track change: git, <li>init + commit</li><li>add + commit</li><li>status + add</li><li>add + push</li>,data-fragment-index=1)}}}
@@ -260,10 +276,197 @@ git log --oneline
 
 #+ATTR_REVEAL: :frag t :data-fragment-index 1
 #+RESULTS:
-: 6dee62e (HEAD -> main) oops wrong date, updated again
-: 242a756 date change in myfile
+: d316b4f (HEAD -> main) oops wrong date, updated again
+: a4a07b1 date change in myfile
 
 
 {{{mpoll(log results #2, <li>empty</li><li>one history = one line</li><li>2 commits=2 lines</li>,data-fragment-index=2)}}}
-* Done!
-phew!
+
+* Once more!
+** add, commit
+#+REVEAL_MARGIN: 0
+#+REVEAL_MAX_SCALE: 2
+
+#+REVEAL_HTML: <div class="column" style="float:left; width:33%; font:smaller">
+
+@@html: <br> <br> @@
+  #+ATTR_REVEAL: :frag t :frag_idx 2
+  #+begin_src bash :session git1 :results none
+  echo NODATE > myfile.txt
+  #+end_src
+
+  #+ATTR_REVEAL: :frag t :frag_idx 4
+  #+begin_src bash :session git1 :results none
+  git add myfile.txt
+  #+end_src
+
+  #+ATTR_REVEAL: :frag t :frag_idx 5
+  #+begin_src bash :session git1 :results none
+  git commit -m "remove date"
+  #+end_src
+
+
+#+REVEAL_HTML: </div><div class="column" style="float:left; width:33%; font-size:smaller; overflow: scroll">
+
+  #+begin_src bash :session git1 :exports both
+  cat myfile.txt
+  #+end_src
+  #+RESULTS:
+  : Mon Feb 24 07:14:52 PM EST 2025
+
+
+  #+ATTR_REVEAL: :frag fade-up :frag_idx 3
+  #+begin_src bash :session git1 :exports both
+  cat myfile.txt
+  #+end_src
+  #+ATTR_REVEAL: :frag fade-up :frag_idx 3
+  #+RESULTS:
+  : NODATE
+
+#+REVEAL_HTML: </div><div class="column" style="float:left; width:33%; font-size:smaller">
+
+  #+ATTR_REVEAL: :frag t :frag_idx 1
+  #+begin_src bash :session git1 :exports both
+  git show HEAD:myfile.txt
+  #+end_src
+  #+ATTR_REVEAL: :frag t :frag_idx 1
+  #+RESULTS:
+  : Mon Feb 24 07:14:52 PM EST 2025
+
+@@html: <br> <br> <br> @@
+
+  #+ATTR_REVEAL: :frag fade-up :frag_idx 6
+  #+begin_src bash :session git1 :exports both
+  git show HEAD:myfile.txt
+  #+end_src
+  #+ATTR_REVEAL: :frag fade-up :frag_idx 6
+  #+RESULTS:
+  : NODATE
+
+#+REVEAL_HTML: </div><div style=clear:both;height:100px>
+
+{{{mpoll(<tt>'echo &gt;'</tt> changes,
+   <li>nothing</li><li>file (cat)</li><li>git HEAD</li><li>file and HEAD</li>,
+   data-fragment-index=2,
+   position: absolute; bottom: -100,
+   fade-in-then-out)}}}
+
+{{{mpoll(<tt>add</tt> changes,
+   <li>neither</li><li>file (cat)</li><li>git HEAD</li><li>file and HEAD</li>,
+   data-fragment-index=4,
+   position: absolute; bottom: -10,
+   fade-in-then-out)}}}
+
+{{{mpoll(<tt>commit</tt> changes,
+   <li>nothing</li><li>file (cat)</li><li>git HEAD</li><li>file and HEAD</li>,
+   data-fragment-index=5,
+   position: absolute; bottom: -100,
+   fade-in-then-out)}}}
+
+
+#+REVEAL_HTML: </div>
+* Fixing history
+#+begin_quote
+the Ultimate Question of Life, the Universe, and Everything
+#+end_quote
+
+[[file:git/deepthought.webp]]
+** amend commit
+
+#+REVEAL_HTML: <div class="column" style="float:left; width:50%; font-size:smaller">
+  Initial answer with way too much confidence
+  #+begin_src bash :session git1 :exports both
+echo "41" > ans.txt
+  #+end_src
+
+  #+ATTR_REVEAL: :frag t :frag_idx 2
+  #+begin_src bash :session git1 :exports both
+git add ans.txt
+git commit -m "41!"
+
+git log --oneline
+  #+end_src
+
+{{{mpoll(git commands to track changes?,
+   <li>commit+push</li>
+   <li>add+commit</li>
+   <li>init+commit</li>,
+   data-fragment-index=1)}}}
+
+#+REVEAL_HTML: </div><div class="column fragment" style="float:left; width:50%; font-size:smaller" data-fragment-index=3>
+  We were wrong. But history doesn't have to know
+  #+begin_src bash :session git1
+echo "42" > ans.txt # update
+
+git add ans.txt
+git commit --amend # fix msg to 42
+  #+end_src
+
+  #+begin_src bash :session git1 :exports none
+# here for presenter to actually commit
+git commit --amend -m "ans is 42!"
+  #+end_src
+
+  #+begin_src bash :session git1 :exports both
+git log --oneline
+  #+end_src
+
+#+REVEAL_HTML: </div>
+
+** fix message
+Don't need an add to adjust a message
+  #+begin_src bash :session git1 :exports both
+git commit --amend -m "Hitchhikers reference"
+git log --oneline
+  #+end_src
+
+
+** Why?
+  * running "WIP" tracking changes so they don't get lost
+  * keep history clean for blame, rebasing, bisecting
+  * fix github CI (pages) without a million commits
+
+** push -f
+
+If this repo was on github and you pushed before amending, you'll need to force your push.
+#+begin_src bash :eval never
+git push -f
+#+end_src
+
+** Note on adding
+
+#+begin_src bash
+git show HEAD:ans.txt # same as cat ans.txt
+#+end_src
+
+#+begin_src bash
+echo 100 >> ans.txt
+git diff
+#+end_src
+
+Will this diff be from HEAD?
+#+begin_src bash
+git add ans.txt
+echo 200 >> ans.txt
+git diff
+#+end_src
+
+If add's tracking the changes, why ever commit?
+
+* rebase
+rebase can move and combine commits. Useful for branches.
+
+*** Fixup (squash)
+
+* Bonus
+
+** git blame
+#+begin_src bash
+git blame -- myfile.txt
+#+end_src
+
+
+* That's all
+#+begin_src bash :eval never
+git commit --amend --no-edit
+#+end_src
