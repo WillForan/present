@@ -191,8 +191,8 @@ git status
 : 	new file:   myfile.txt
 
 {{{mpoll(added a file -- what next?,
-  <li>git commit</li>
-  <li>git log</li>
+  <li data-poll="correct">git commit</li>
+  <li>git push</li>
   <li>git diff</li>
   <li>git init</li>, data-fragment-index=2)}}}
 
@@ -300,7 +300,7 @@ git log --oneline
   git add myfile.txt
   #+end_src
 
-  #+ATTR_REVEAL: :frag t :frag_idx 5
+  #+ATTR_REVEAL: :frag t :frag_idx 6
   #+begin_src bash :session git1 :results none
   git commit -m "remove date"
   #+end_src
@@ -335,11 +335,11 @@ git log --oneline
 
 @@html: <br> <br> <br> @@
 
-  #+ATTR_REVEAL: :frag fade-up :frag_idx 6
+  #+ATTR_REVEAL: :frag fade-up :frag_idx 7
   #+begin_src bash :session git1 :exports both
   git show HEAD:myfile.txt
   #+end_src
-  #+ATTR_REVEAL: :frag fade-up :frag_idx 6
+  #+ATTR_REVEAL: :frag fade-up :frag_idx 7
   #+RESULTS:
   : NODATE
 
@@ -351,15 +351,28 @@ git log --oneline
    position: absolute; bottom: -100,
    fade-in-then-out)}}}
 
+{{{mpoll(<tt>diff</tt> shows,
+   <li>nothing to diff yet</li><li>NODATE (against HEAD)</li><li>nothing b/c HEAD==file</li>,
+   data-fragment-index=3,
+   position: absolute; bottom: -10,
+   fade-in-then-out)}}}
+
 {{{mpoll(<tt>add</tt> changes,
    <li>neither</li><li>file (cat)</li><li>git HEAD</li><li>file and HEAD</li>,
    data-fragment-index=4,
    position: absolute; bottom: -10,
    fade-in-then-out)}}}
 
+
+{{{mpoll(<tt>diff</tt> after add,
+   <li>nothing new to diff</li><li>NODATE (against HEAD)</li><li>nothing b/c HEAD==file</li>,
+   data-fragment-index=5,
+   position: absolute; bottom: -10,
+   fade-in-then-out)}}}
+
 {{{mpoll(<tt>commit</tt> changes,
    <li>nothing</li><li>file (cat)</li><li>git HEAD</li><li>file and HEAD</li>,
-   data-fragment-index=5,
+   data-fragment-index=6,
    position: absolute; bottom: -100,
    fade-in-then-out)}}}
 
