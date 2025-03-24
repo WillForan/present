@@ -1,0 +1,197 @@
+#+TITLE: Exploring DICOMs for R2'
+
+#+INCLUDE: ../org-reveal-settings.org
+#+REVEAL_EXTRA_SCRIPTS: ("https://code.jquery.com/jquery-3.7.1.min.js" "https://www.xn--4-cmb.com/rpoll/poll.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/audio-slideshow/plugin.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/audio-slideshow/recorder.js" "https://cdnjs.cloudflare.com/ajax/libs/RecordRTC/5.6.2/RecordRTC.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/anything/plugin.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/customcontrols/plugin.js")
+#+REVEAL_EXTRA_CSS: https://www.xn--4-cmb.com/rpoll/poll.css
+#+REVEAL_HIGHLIGHT_CSS_IGNORE: ../reveal.js/plugin/highlight/monokai.css
+#+PROPERTY: HEADER-ARGS+ :eval no-export :exports both
+#+EXPORT_AUTHOR:
+#+OPTIONS:  toc:nil ^:nil
+
+* Takehome
+ * inspect dicom images (~med2image~)
+ * inspect dicom headers (~dicom_hdr~)
+* What data?
+** Example list
+#+name: dirlist
+#+begin_src bash :session :dir "/ssh:reese:/mnt/oac_share/Forbes ADEPT/data/Analysis/raw/WPC-8557/" :cache yes
+ls 2023.08.17-08.56.37/*/ |
+    sort -t. -k2n
+#+end_src
+
+#+ATTR_HTML: :style font-size:50%
+#+ATTR_REVEAL: :frag t
+#+RESULTS[b30ad05d4209fe2b106fe82a119f4617456465c7]: dirlist
+| anat-scout_acq-aa_160x160.1                   |
+| anat-scout_acq-aa_MPR_sag_162x162.2           |
+| anat-scout_acq-aa_MPR_cor_162x162.3           |
+| anat-scout_acq-aa_MPR_tra_162x162.4           |
+| anat-T1w_acq-mprage_320x300.5                 |
+| anat-T1w_acq-mprage_320x300.6                 |
+| anat-tseNM_384x288.7                          |
+| anat-mT2_256x256.8                            |
+| anat-mT2star_256x256.9                        |
+| anat-mT2star_256x256.10                       |
+| func-bold_task_guess_run-01_SBRef_936x936.11  |
+| func-bold_task_guess_run-01_936x936.12        |
+| func-bold_task_guess_run-01_PhysioLog_0x0.13  |
+| fmap-epi_acq-opphase_dir-AP_run-01_936x936.14 |
+| fmap-epi_acq-opphase_dir-PA_run-01_936x936.15 |
+| func-bold_task_rest_run-01_SBRef_688x688.16   |
+| func-bold_task_rest_run-01_688x688.17         |
+| func-bold_task_rest_run-02_SBRef_688x688.18   |
+| func-bold_task_rest_run-02_688x688.19         |
+| fmap-epi_acq-opphase_dir-AP_run-02_688x688.20 |
+| fmap-epi_acq-opphase_dir-PA_run-02_688x688.21 |
+| PhoenixZIPReport_0x0.99                       |
+
+** More
+And again with dicom counts
+#+begin_src bash :session :dir "/ssh:reese:/mnt/oac_share/Forbes ADEPT/data/Analysis/raw/WPC-8557/" :cache yes :var dirlist=dirlist
+for d in "${dirlist[@]}"; do
+    printf "%s\t%s\n" \
+           "$d" \
+           $(ls 2023.08.17-08.56.37/*/$d| wc -l);
+done | grep mT2
+#+end_src
+
+#+ATTR_HTML: :font-size 8px
+#+ATTR_REVEAL: :frag t
+#+RESULTS[ca9fe3261d0007fe5cf32eb3ea74cead5518ffed]:
+| anat-mT2_256x256.8      | 120 |
+| anat-mT2star_256x256.9  | 160 |
+| anat-mT2star_256x256.10 | 160 |
+
+** images
+ :PROPERTIES:
+ :header-args:  :session med2img :dir "/ssh:rhea:/mnt/oac_share/Forbes ADEPT/data/Analysis/raw/WPC-8557/"
+ :header-args+: :output-dir /home/foranw/src/work/present/r2prime-dcm2nii
+ :header-args+: :cache yes :results raw file
+ :header-args+: :prologue "export PATH=\"$PATH:$HOME/.local/bin:/opt/ni_tools/python/userbase/bin\""
+ :END:
+
+Quickly inspecting dicoms
+  *  ~med2image~ (python tool using ~pydicom~)
+  * compare to FSL's ~slicer~
+
+#+begin_src bash :eval never
+# easy install
+uv tool install git+https://github.com/WillForan/med2image
+#+end_src
+
+#+begin_src bash :eval never
+med2image  \
+   `# input is folder, output single image` \
+   --convertOnlySingleDICOM \
+   `# pick the middle slice` \
+   -s m \
+   `# dont print extra info. here only to simplify demo` \
+   --verbosity 0 \
+   `# output image` \
+   -o $OUTPUT
+   `# input folder` \
+   -I $DCMDIR
+#+end_src
+
+
+** 8 - mT2
+#+begin_src bash :file 08-t2.png  :epilogue "cat /tmp/08_t2.png"
+med2image  --convertOnlySingleDICOM -s m --verbosity 0 \
+   -o /tmp/08_t2.png \
+   -I 2023.08.17-08.56.37/ADEPT*/anat-mT2*.8/
+#+end_src
+
+#+RESULTS[0578a408739099e78a9b89b3f3ba767ef380d96a]:
+[[file:08-t2.png]]
+
+
+** 9 - mT2star (part 1)
+#+begin_src bash :file 09-mag.png :epilogue "cat /tmp/mag.png"
+med2image  --convertOnlySingleDICOM -s m --verbosity 0 \
+   -o /tmp/mag.png \
+   -I 2023.08.17-08.56.37/ADEPT*/anat-mT2star_*.9/
+#+end_src
+
+#+RESULTS[db3902be9084cb2a73af308058c2037e9019106c]:
+[[file:09-mag.png]]
+
+** 10 - mT2star (part 2)
+#+begin_src bash :file 10-pha.png  :cache yes :epilogue "cat /tmp/pha.png"
+med2image  --convertOnlySingleDICOM -s m --verbosity 0 \
+   -o /tmp/pha.png \
+   -I 2023.08.17-08.56.37/ADEPT*/anat-mT2star_*.10/
+#+end_src
+
+#+RESULTS[6f6eb858cb746ae8e26c3e180107ad853f73780e]:
+[[file:10-pha.png]]
+
+** Montage
+
+#+begin_src bash :results file link :file all.png
+montage -label %t -adjoin [10]*png  all.png
+#+end_src
+
+#+RESULTS:
+[[file:all.png]]
+
+** Phase vs Mag
+
+*** Example file
+We can inspect dicom headers by finding an example of each.
+
+#+NAME:dicom-example
+#+begin_src bash :session :dir "/ssh:reese:/mnt/oac_share/Forbes ADEPT/data/Analysis/raw/WPC-8557/" :cache yes
+cd 2023.08.17-08.56.37/* # cd only to avoid publishing IDs
+for d in *.{9,10}; do
+  find "$d" -type f -print -quit;
+done
+#+end_src
+
+#+ATTR_HTML: :style font-size:50%
+#+RESULTS[394d2da5194095f27c3af5228edf3775c2b0e0bb]: dicom-example
+| anat-mT2star_256x256.9/MR.1.3.12.2.1107.5.2.43.67078.2023081709280471381269022  |
+| anat-mT2star_256x256.10/MR.1.3.12.2.1107.5.2.43.67078.2023081709280471356569021 |
+
+*** Comparing
+#+begin_src bash :session :var dcm9=dicom-example[0] :var dcm10=dicom-example[-1] :results code :exports none
+echo -e "diff \\" "\n   <(dicom_hdr '$dcm9')\\" "\n   <(dicom_hdr '$dcm10')"
+#+end_src
+
+#+NAME: dicom-diff
+#+RESULTS:
+#+begin_src bash :exports none :eval never
+diff \
+   <(dicom_hdr 'anat-mT2star_256x256.9/MR.1.3.12.2.1107.5.2.43.67078.2023081709280471381269022')\
+   <(dicom_hdr 'anat-mT2star_256x256.10/MR.1.3.12.2.1107.5.2.43.67078.2023081709280471356569021')
+#+end_src
+
+Actually running the diff. ~vimdiff~ will be more informative
+#+begin_src bash  :dir "/ssh:rhea:/mnt/oac_share/Forbes ADEPT/data/Analysis/raw/WPC-8557/" :cache yes :noweb yes :results code :cache yes :prologue \"export PATH="$PATH:/opt/ni_tools/afni\""
+cd 2023.08.17-08.56.37/*
+<<dicom-diff>> | grep 1016
+#+end_src
+
+#+RESULTS[5602b74667f79736e49a7a65be03a3f071b447b5]:
+#+begin_src diff
+< 0051 1016        8 [152374  ] //                               //p2 M/ND
+> 0051 1016        8 [152408  ] //                               //p2 P/ND
+#+end_src
+
+* Rename and to nifti
+
+** BIDS
+Ideally we'd be using bids names. plug reproin-namer, also
+https://github.com/LabNeuroCogDevel/r2prime-prisma
+  * 4 echos of T2starw w/ phase and mag
+  * 3 echos of T2w
+#+begin_src
+BIDS/sub-01/anat/
+├── sub-01_acq-mGRE_echo-*_part-mag_T2starw.nii.gz
+├── sub-01_acq-mGRE_echo-*_part-phase_T2starw.nii.gz
+├── sub-01_acq-mTSE_echo-*_T2w.nii.gz
+└── sub-01_T1w.nii.gz
+#+end_src
+
+** Existing
+But we already have scripts set up for less ideal names.
+(FWIW, r2prime scripts could use BIDS convention w/o modification! Almost a BIDS app)
