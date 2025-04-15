@@ -5,7 +5,7 @@
 #+REVEAL_EXTRA_CSS: https://www.xn--4-cmb.com/rpoll/poll.css
 #+REVEAL_HIGHLIGHT_CSS_IGNORE: reveal.js/plugin/highlight/monokai.css
 #+PROPERTY: HEADER-ARGS+ :eval no-export
-#+OPTIONS:  toc:nil
+#+OPTIONS:  toc:nil author:nil
 #+PROPERTY: header-args :exports both :eval no-export
 
 * FrontMatter :noexport:
@@ -59,7 +59,37 @@ Things left out
 
 * R
 
-Workshop? make sure you have ~testthat~
+** makeshift testing
+
+*** built in checks
+#+begin_src R :session
+add3 <- function(x) x +3
+stopifnot(add3(5) == 8, "add3 doesn't work as expected")
+#+end_src
+
+#+RESULTS:
+: Error: "add3 doesn't work as expected" is not TRUE
+
+*** checking input
+#+begin_src R :session
+library(LNCDR)
+ex_df <- data.frame(a=1:26,b=letters)
+# check fisrt column is integer, second is strings
+with(ex_df, qassertm(a="i+", b="s"))
+#+end_src
+
+#+RESULTS:
+
+#+begin_src R :session
+with(ex_df, qassertm(a="i+", b="i"))
+#+end_src
+
+#+RESULTS:
+: Error in eval(substitute(checkmate::qassert(x, spec), list(x = as.name(varname),  :
+:  Assertion on 'b' failed. Must be of class 'integer', not 'character'.
+** Workshop?
+
+Make sure you have ~testthat~
 #+begin_src R :eval never
 library(testthat) # OR
 install.packages('testthat')
@@ -189,9 +219,14 @@ New constraint, neg input should be made positive before adding.
 - write code that makes the test pass
 
 ** But is this actually useful?
-  [[*UPPSP]]
+  [[*UPPSP][UPPSP]]
 
-** Bash
+** How to organize these tests?
+
+  * test functions in notebooks?
+  * separate *test.R files, run by testthat
+
+* Bash
  ~bats~ is an external testing framework for shell scripts. But it can test anything (yay shell!)
 
 ** Example
@@ -269,8 +304,31 @@ lunaid() { echo "$*" | grep -Po '(?<=sub-)\d{5}'; }
 eval "$(iffmain lunaid)" # lncdtool callback
 #+end_src
 
+#+begin_src bash :dir testing-code/ :results output verbatim
+bats --verbose-run lunaid_2.bats
+#+end_src
+
+#+RESULTS:
+: 1..2
+: ok 1 lunaid_test
+: ok 2 lunaid_date_test
+
 ** in lncdtools
 https://github.com/lncd/lncdtools/blob/master/ld8
+
+** All in one
+#+begin_src bash :tangle ./testing-code/allinone.bash :eval never
+getlunaid() { grep -o '\d{5}'; }
+eval "$(iffmain runall)"
+
+id_test() { #@test
+  run getlunaid 12345
+  [[ $output == 12345 ]]
+}
+#+end_src
+
+#+begin_src bash :dir testing-code
+#+end_src
 
 * Matlab
 
