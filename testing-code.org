@@ -39,6 +39,8 @@ qrencode -o 4npoll.png https://www.xn--4-cmb.com/rpoll
   * exploring
     * dont know what the results will be. can't test them
   * [still useful for supporting code]
+** soap box
+  untested code is like results without stats. For simple things it can be okay, for advanced it's malpractice :)
 
 ** Applications
 tests could be useful on code that
@@ -49,6 +51,7 @@ tests could be useful on code that
 
 ** Advanced
 Things left out
+  * setup, teardown, fixtures, mocking
   * tests that run on file modification (immediate feedback)
   * "CI" continuous integration (github actions)
   * file organization of tests
