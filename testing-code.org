@@ -1,0 +1,373 @@
+#+TITLE: Testing Code
+#+REVEAL_THEME: dracula
+#+REVEAL_PLUGINS: (highlight)
+#+REVEAL_EXTRA_SCRIPTS: ("https://code.jquery.com/jquery-3.7.1.min.js" "https://www.xn--4-cmb.com/rpoll/poll.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/audio-slideshow/plugin.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/audio-slideshow/recorder.js" "https://cdnjs.cloudflare.com/ajax/libs/RecordRTC/5.6.2/RecordRTC.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/anything/plugin.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/customcontrols/plugin.js")
+#+REVEAL_EXTRA_CSS: https://www.xn--4-cmb.com/rpoll/poll.css
+#+REVEAL_HIGHLIGHT_CSS_IGNORE: reveal.js/plugin/highlight/monokai.css
+#+PROPERTY: HEADER-ARGS+ :eval no-export
+#+OPTIONS:  toc:nil
+#+PROPERTY: header-args :exports both :eval no-export
+
+* FrontMatter :noexport:
+
+#+MACRO: mpoll #+REVEAL_HTML:<div class="poll fragment $5" $3 style="position: relative; right: auto; bottom: auto; width: auto; $4"> <h1>$1</h1> <ul>$2</ul> <h2></h2> </div>
+
+
+#+begin_src bash :eval no-export :results none
+qrencode -o 4npoll.png https://www.xn--4-cmb.com/rpoll
+#+end_src
+
+
+* What
+
+
+#+ATTR_HTML: :style width:50%
+[[file:testing-code/FireflyLectures-LinearEq.png]]
+#+ATTR_HTML: :style top:0;right:0;position:absolute;
+[[file:4npoll.png]]
+{{{mpoll(remember checking linear equation solutions?, <li>yes</li><li>no</li>)}}}
+
+* Why
+  * verify expected results
+  * document code's (expected) behavior
+  * catch regressions (don't break stuff adding features)
+  * (TDD) better design: output before input
+
+** Why not
+  * plotting
+    * huge page to check for limited value
+  * exploring
+    * dont know what the results will be. can't test them
+  * [still useful for supporting code]
+
+** Applications
+tests could be useful on code that
+  * calculates fd on visit
+  * adding acq lines to json files
+  * reverse coding and summarising a survey
+  * parpools over a matrix with weird indexing (hurst)
+
+** Advanced
+Things left out
+  * tests that run on file modification (immediate feedback)
+  * "CI" continuous integration (github actions)
+  * file organization of tests
+    * inline/command window to start
+
+* R
+
+Workshop? make sure you have ~testthat~
+#+begin_src R :eval never
+library(testthat) # OR
+install.packages('testthat')
+#+end_src
+
+** Min Demo
+Define these
+#+begin_src R :session :results none :prologue "options(crayon.enabled= FALSE);pacman::p_load(testthat)"
+myfunc <- function(x) x + 2
+
+myfunc_test <- function() {
+  test_that("addition works", expect_equal(myfunc(5), 7))
+}
+#+end_src
+
+Then in the R console, what does this give you?
+#+begin_src R :session :results output verbatim
+myfunc_test()
+#+end_src
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 3
+#+RESULTS:
+: Test passed 🥳
+
+{{{mpoll(ready?, <li>yes</li>,data-fragment-index=1)}}}
+
+*** Why
+
+#+REVEAL_HTML: <div style="float:left; width:50%">
+#+ATTR_REVEAL: :frag (grow grow grow nil) :data-fragment-index 3
+  * verify expected
+  * document behavior
+  * catch regressions
+  * design
+
+#+REVEAL_HTML: </div><div style="float:right; width:50%">
+#+begin_src R :eval never
+myfunc_test <- function() {
+  test_that("addition works",
+    expect_equal(myfunc(5),
+                 7))
+}
+#+end_src
+#+REVEAL_HTML: </div>
+
+{{{mpoll(which (R1)?,
+<li>verify</li>
+<li>doc</li>
+<li>catch</li>
+<li>verify+doc+catch</li>
+<li>all</li>,
+data-fragment-index=1, clear:both;bottom:0)}}}
+
+** Failing
+
+New constraint: if 0, don't add anything
+#+name: R-test-both
+#+begin_src R :session  :results output verbatim
+myfunc_test <- function() {
+  test_that("addition works",
+            expect_equal(myfunc(5), 7))
+  test_that("special 0",
+            expect_equal(myfunc(0), 0))
+}
+myfunc_test()
+#+end_src
+
+#+ATTR_HTML: :style font-size:10px
+#+RESULTS: R-test-both
+#+begin_example
+Test passed 🎊
+── Failure: sepecial 0 ────────────────────────────────────────────────
+myfunc(0) not equal to 0.
+1/1 mismatches
+[1] 2 - 0 == 2
+
+Error:
+! Test failed
+Backtrace:
+    ▆
+ 1. ├─global myfunc_test()
+ 2. │ └─testthat::test_that(...)
+ 3. │   └─withr (local) `<fn>`()
+ 4. └─reporter$stop_if_needed()
+ 5.   └─rlang::abort("Test failed", call = NULL)
+#+end_example
+
+** Update function
+TDD. we have a test. lets get it to pass!
+#+name: r-myfunc-0
+#+begin_src R :session :results none
+myfunc <- function(x)
+  ifelse(x==0, 0, x + 2)
+#+end_src
+
+#+begin_src R :session :results output verbatim
+myfunc_test()
+#+end_src
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 3
+: Test passed 🥳
+: Test passed 😸
+
+
+{{{mpoll(results?, <li>1 passed test</li> <li poll-data=correct>2 passted tests</li> <li>1 pass/1 fail</li>, data-fragment-index=2)}}}
+
+** Why again
+
+#+REVEAL_HTML: <div style="float:left; width:50%">
+#+ATTR_REVEAL: :frag (grow grow grow grow) :data-fragment-index 2
+  * verify expected
+  * document behavior
+  * catch regressions
+  * design
+
+#+REVEAL_HTML: </div><div style="float:right; width:50%; font-size:smaller">
+#+begin_src R :eval never :noweb yes
+<<r-myfunc-0>>
+
+<<R-test-both>>
+#+end_src
+#+REVEAL_HTML: </div>
+
+** DIY
+New constraint, neg input should be made positive before adding.
+- write a new test =myfunc_test(-3)= is 3+2 => 5
+- write code that makes the test pass
+
+** But is this actually useful?
+  [[*UPPSP]]
+
+** Bash
+ ~bats~ is an external testing framework for shell scripts. But it can test anything (yay shell!)
+
+** Example
+#+NAME: bash-lunaid-1
+#+begin_src bash :tangle testing-code/lunaid.bash :eval never
+# lunaid.bash
+lunaid() { echo "$*" | grep -Po '\d{5}'; }
+eval "$(iffmain lunaid)" # lncdtool callback
+#+end_src
+
+#+begin_src bash :tangle testing-code/lunaid_1.bats :eval never
+# lunaid_1.bats
+source lunaid.bash
+lunaid_test() { # @test
+    run lunaid sub-12345
+    [[ $output == 12345 ]]
+}
+#+end_src
+
+#+begin_src bash :dir testing-code/ :results output verbatim
+bats lunaid_1.bats
+#+end_src
+
+#+RESULTS:
+: 1..1
+: ok 1 lunaid_test
+
+** adding more tests
+
+#+REVEAL_HTML: <div style="float:left; width:50%; font-size:smaller">
+#+begin_src bash :eval never :noweb yes
+<<bash-lunaid-1>>
+#+end_src
+
+#+REVEAL_HTML: </div><div style="float:right; width:50%; font-size:smaller">
+#+begin_src bash :tangle testing-code/lunaid_2.bats :eval never
+source lunaid.bash
+lunaid_test() { # @test
+   run lunaid sub-12345
+   [[ $output == 12345 ]]
+}
+lunaid_date_test() { # @test
+   run lunaid sub-12345/ses-20001231
+   [[ $output == 12345 ]]
+}
+#+end_src
+#+REVEAL_HTML: </div>
+
+#+ATTR_HTML: :style clear:both
+#+begin_src bash :dir testing-code/ :results output verbatim
+bats --verbose-run lunaid_2.bats
+#+end_src
+
+#+ATTR_REVEAL: :frag t :data-fragment-index 1
+#+ATTR_HTML: :style font-size:12px
+#+RESULTS:
+: 1..2
+: ok 1 lunaid_test
+: not ok 2 lunaid_date_test
+: # (in test file lunaid_2.bats, line 8)
+: #   `[[ $output == 12345 ]]' failed
+: # 12345
+: # 20001
+
+{{{mpoll(is there a bug,
+<li>no bug!</li>
+<li>sub gets included</li>
+<li>date as lunaid</li>,
+data-fragment-index=0, clear:both;bottom:0)}}}
+
+** Fix
+
+#+begin_src bash :tangle testing-code/lunaid.bash :eval never
+lunaid() { echo "$*" | grep -Po '(?<=sub-)\d{5}'; }
+eval "$(iffmain lunaid)" # lncdtool callback
+#+end_src
+
+** in lncdtools
+https://github.com/lncd/lncdtools/blob/master/ld8
+
+* Matlab
+
+ * like functions, tests live in their own file
+ * =*Test.m= w/ =runtests()=
+
+** Example
+
+#+begin_src octave :tangle testing-code/add2Test.m :eval never
+% add2Test.m
+assert(isequal(add2(5), 7), 'addition works')
+#+end_src
+
+#+begin_src octave :tangle testing-code/add2.m :eval never
+% add2.m
+function r = add2(x)
+  r = x + 2
+#+end_src
+
+#+begin_src matlab :dir testing-code
+% in command window
+runtests
+#+end_src
+
+#+RESULTS:
+
+** new test
+
+#+begin_src octave :tangle testing-code/add2Test.m :eval never
+assert(isequal(add2(5), 7), 'addition works')
+assert(isequal(add2(0), 0), 'zero')
+#+end_src
+
+#+begin_src matlab :dir testing-code
+runtests
+#+end_src
+
+** Update
+
+#+begin_src octave :tangle testing-code/add2.m :eval never
+function r = add2(x)
+  if x == 0, r=0; return; end
+  r = x + 2
+#+end_src
+
+#+begin_src octave :dir testing-code
+runtests()
+#+end_src
+
+
+
+* IRL
+
+** UPPSP
+We want to make sure our scoring function works as expected. What would this look like at a high level?
+
+ * w/ R
+  #+ATTR_REVEAL: :frag t :data-fragment-index 1
+  * =uppsp= function returns df, test checks single visit (hand scored)
+ * w/ bats
+  #+ATTR_REVEAL: :frag t :data-fragment-index 2
+  * run R code, check output in shell
+
+ #+ATTR_REVEAL: :frag t :data-fragment-index 3
+ * why prefer one over the other?
+
+*** testthat
+#+begin_src R :eval never
+score_uppsp <- function(raw_uppspd_df) {
+   # ...
+   return(scores_df)
+}
+
+testthat::expect_equal(
+            score_uppsp(read.csv("example_visit.csv"))$tot,
+            10)
+#+end_src
+
+#+RESULTS:
+: Error: "-10" not equal to "10".
+: 1/1 mismatches
+: x[1]: "-10"
+: y[1]: "10"
+
+*** bats
+
+#+begin_src bash :eval never
+uppsp_test() { # @test
+    Rscript score_uppsp.R
+    grep 10129 | awk -F, '{print $5}' # get tot
+    [[ $output == 10 ]]
+}
+#+end_src
+
+** Matlab code
+To compute hurts, we partition a matrix in chucks for parpool evaluation.
+Putting the matrix back together is fraught. How can we confirm we've done it correctly?
+
+* Why
+  * verify expected results
+  * document behavior
+  * catch regressions
+  * (TDD) better design: output before input

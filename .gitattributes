@@ -3,3 +3,4 @@ scope/lionking_beyond.webp filter=lfs diff=lfs merge=lfs -text
 */*.png filter=lfs diff=lfs merge=lfs -text
 */*.webp filter=lfs diff=lfs merge=lfs -text
 */*.jpg filter=lfs diff=lfs merge=lfs -text
+*html filter=lfs diff=lfs merge=lfs -text
