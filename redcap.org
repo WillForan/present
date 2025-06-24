@@ -1,0 +1,249 @@
+#+TITLE: REDCap
+#+REVEAL_THEME: dracula
+#+REVEAL_PLUGINS: (highlight)
+#+REVEAL_EXTRA_SCRIPTS: ("https://code.jquery.com/jquery-3.7.1.min.js" "https://www.xn--4-cmb.com/rpoll/poll.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/audio-slideshow/plugin.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/audio-slideshow/recorder.js" "https://cdnjs.cloudflare.com/ajax/libs/RecordRTC/5.6.2/RecordRTC.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/anything/plugin.js" "https://cdn.jsdelivr.net/npm/reveal.js-plugins@latest/customcontrols/plugin.js")
+#+REVEAL_EXTRA_CSS: https://www.xn--4-cmb.com/rpoll/poll.css
+#+REVEAL_HIGHLIGHT_CSS_IGNORE: reveal.js/plugin/highlight/monokai.css
+#+PROPERTY: HEADER-ARGS+ :eval no-export :exports both
+#+OPTIONS:  toc:nil  ^:nil
+#+begin_export html
+<style>
+.reveal  td {font-size: 30%;}
+.reveal  th {font-size: 30%;}
+</style>
+#+end_export
+* frontmatter :noexport:
+** emacs
+setup reveal.js
+#+begin_src elisp :results none
+; 20250202  org-re-reveal didn't work. install from mela with oer-reveal (but not loaded?) and does work,
+(use-package org-re-reveal :ensure t) ; fork of org-reveal
+(use-package oer-reveal :ensure t) ; export backend -- doesn't work? above does?
+(setq org-reveal-root "/home/foranw/src/work/present/reveal.js/")
+(setq oer-reveal-plugin-4-config "") ; remove RevealAudio
+
+(setq org-babel-R-command "R --slave --no-save --vanilla")
+#+end_src
+
+
+* Data collection
+
+** Per project. no cross talk.
+  - extra IDs for same participant inevitable?
+  - project -> instruments -> field
+  - single "record" per participant (wide format *)
+    #+DOWNLOADED: screenshot @ 2025-06-24 09:17:36
+    [[file:redcap/2025-06-24_09-17-36_screenshot.png]]
+
+
+** Wide view: Dashboard
+
+*** Screenshot
+from [[https://redcap-std.hs.pitt.edu/redcap/redcap_v15.1.1/DataEntry/record_status_dashboard.php?pid=14596][spa dashboard]]
+
+#+DOWNLOADED: screenshot @ 2025-06-24 09:00:44
+[[file:redcap/2025-06-24_09-00-44_screenshot.png]]
+
+***
+  1. ~record_id~ is lunaid. but exists before enrolled. ~< 10000 || > 99999~ == recruit, not enrolled
+  2. ~redcap_event_name~ distinct events within project.
+  3. There are many, many "instruments" across many events; ~visit type × timepoint~
+** Semi-wide/long: Record ID view
+[[https://redcap-std.hs.pitt.edu/redcap/redcap_v15.1.1/DataEntry/record_home.php?pid=14596&arm=1&id=11751][spa record id view]]
+
+
+#+DOWNLOADED: screenshot @ 2025-06-24 09:03:58
+[[file:redcap/2025-06-24_09-03-58_screenshot.png]]
+
+
+* Collection
+
+** Not in recap
+  * ~edf~ eye files, ~bdf~ eeg files, ~nii.gz~ or ~dcm~ MR data
+     * derived measures: ~tat2~, connectivity, E/I measures
+  * task ~log~ nor ~csv~
+     * derived measures: performance, latency, etc
+  * scored ASR/YSR
+
+** What's collected
+  * Participant
+    * Screener: CBCL,YSR,ASR raw values (scored via windows exe, not in DB)
+    * survey batteries (field values in instruments)
+    * e.g Demographics: race/ethnicity, dob, SES, edu
+  * RA annotates
+    * visit scores, task onset times
+
+*** Example - ASR
+participant sees
+#+DOWNLOADED: screenshot @ 2025-06-24 10:05:38
+[[file:redcap/2025-06-24_10-05-38_screenshot.png]]
+
+*** Examples - MR
+RA sees
+#+DOWNLOADED: screenshot @ 2025-06-24 09:49:11
+[[file:redcap/2025-06-24_09-49-11_screenshot.png]]
+
+
+
+** Flow
+[[https://upmchs-my.sharepoint.com/:u:/r/personal/foranw_upmc_edu/_layouts/15/doc2.aspx?sourcedoc=%7B80C6BDE9-2686-4758-B9CB-9FAC94A86EF3%7D&file=LunaLabParticipantFlow.vsdx&action=default&mobileredirect=true&DefaultItemOpen=1&ct=1750772565097&wdOrigin=OFFICECOM-WEB.START.EDGEWORTH&cid=687067f4-71a9-42b7-8c18-dcf008ddbc98&wdPreviousSessionSrc=HarmonyWeb&wdPreviousSession=051c4c19-dbe9-4670-ae48-27f7792cf0bb][visio]]
+  * recruit -> RA entry -> screener link
+  * RA schedule -> behave link + RA entry
+
+#+DOWNLOADED: screenshot @ 2025-06-24 09:43:50
+[[file:redcap/2025-06-24_09-43-50_screenshot.png]]
+
+
+** Survey Queue
+
+#+DOWNLOADED: screenshot @ 2025-06-24 09:09:21
+[[file:redcap/2025-06-24_09-09-21_screenshot.png]]
+
+
+** Calc fields and question reuse
+
+Unified Screener was previous 3 separate instruments
+#+DOWNLOADED: screenshot @ 2025-06-24 09:06:09
+[[file:redcap/2025-06-24_09-06-09_screenshot.png]]
+
+#+DOWNLOADED: screenshot @ 2025-06-24 09:06:35
+[[file:redcap/2025-06-24_09-06-35_screenshot.png]]
+
+** PHI protected
+or at least it's flagged so it could be
+#+DOWNLOADED: screenshot @ 2025-06-24 09:10:22
+[[file:redcap/2025-06-24_09-10-22_screenshot.png]]
+
+#+DOWNLOADED: screenshot @ 2025-06-24 09:53:41
+[[file:redcap/2025-06-24_09-53-41_screenshot.png]]
+
+
+* Where is the data!?
+
+
+** Habit
+
+~/Volumes/Hera/Projects/Habit/behave/redcap~ has ~habit_redcap.csv~ (timepoint 2 only!)
+
+#+begin_src bash :dir /Volumes/Hera/Projects/Habit/behave/redcap :results verbatim
+tree -I qualtrics
+#+end_src
+
+#+RESULTS:
+#+begin_example
+.
+├── 00_get.R
+├── 01_mr_visitno.R
+├── data
+│   ├── habit_redcap.csv
+│   ├── habit_redcap_dict.RData
+│   ├── habit_redcap.RData
+│   └── mr_visitno.tsv
+├── Habit_demog_packet_and_qualtrics.csv
+├── Habit_demog_packet_qualtrics_redcap.csv
+├── lookup_mr_visit
+└── Makefile
+
+2 directories, 10 files
+#+end_example
+
+** SPA
+~/Volumes/Hera/Projects/SPA/scripts/redcap~ has ~spa_redcap.RData~
+#+begin_src bash :dir /Volumes/Hera/Projects/SPA/scripts/redcap :results verbatim
+tree
+#+end_src
+
+#+RESULTS:
+#+begin_example
+.
+├── 00_get.R
+├── 01_visitdates.R
+├── age_by_date.png
+├── age_timesincebehave.png
+├── age_visit_histogram.R
+├── id_age.tsv
+├── Makefile
+├── spa_redcap.RData
+├── visit_age.tsv
+└── visit_dates.tsv
+
+1 directory, 10 files
+#+end_example
+
+** Cron
+#+begin_src bash :dir /ssh:r: :results verbatim
+crontab -l | grep -iP '^[0-9].*redcap'
+#+end_src
+
+#+RESULTS:
+: 00 1 * * * /Volumes/Hera/Projects/SPA/scripts/redcap/00_get.R 2>&1 > /var/log/spa_redcap.log
+: 30 2 * * * make -C /Volumes/Hera/Projects/Habit/behave/redcap
+
+* Reading Raw in R
+
+#+begin_src R :session :results none
+pacman::p_load(tidyr,dplyr,stringr,lubridate)
+load('/Volumes/Hera/Projects/SPA/scripts/redcap/spa_redcap.RData')
+lunas <- spa_redcap$data |> # NB. data is list. 'data' is df
+  filter(record_id>10000, record_id < 99999)
+#+end_src
+
+** Data as it is
+
+#+begin_src R :session :colnames  yes
+lunas |>
+  select(record_id, redcap_event_name, recruit_age, enroll_date,demo_age, ptx_mp2rage_onset) |>
+  filter(record_id %in% c(11751)) # ,11823
+#+end_src
+
+#+ATTR_REVEAL: :font smaller
+#+RESULTS:
+| record_id | redcap_event_name | recruit_age | enroll_date | demo_age | ptx_mp2rage_onset   |
+|-----------+-------------------+-------------+-------------+----------+---------------------|
+|     11751 | recruit_arm_1     |          23 |             |          |                     |
+|     11751 | screener_arm_1    |             |             |          |                     |
+|     11751 | behavioral_arm_1  |             |  2023-12-06 |          |                     |
+|     11751 | mr_arm_1          |             |             |          | 2023-12-08 09:06:00 |
+
+** Combining
+
+*** Visit number
+#+begin_src R :session :results none
+# /Volumes/Hera/Projects/SPA/scripts/redcap/age_visit_histogram.R
+
+# remove '_arm_1' parse visit number from event name
+rm_arm <- function(d)
+  d |> mutate(redcap_event_name=gsub('_arm_1','',redcap_event_name),
+              visitno=str_extract(redcap_event_name, '[0-9]$'),
+              visitno=ifelse(is.na(visitno), 1, visitno))
+#+end_src
+
+*** Break up
+#+begin_src R :session :results none
+
+d.behave <- lunas |>
+  select(luna=record_id, redcap_event_name,
+         age=demo_age, behave=behave_starttime) |>
+  filter(!is.na(behave)) |>
+  rm_arm()
+d.mri <- lunas |>
+  select(luna=record_id, redcap_event_name,
+         ptx=ptx_mp2rage_onset)|>
+  filter(!is.na(ptx)) |>
+  rm_arm()
+#+end_src
+
+*** Combine
+#+begin_src R :session :colnames  yes
+d_wide <- left_join(d.behave, d.mri, by=c("luna","visitno"))
+
+d_wide |>
+  rename_with(\(x) gsub('redcap_event_name','name', x)) |>
+  filter(luna %in% c(11751,11823))
+#+end_src
+
+#+RESULTS:
+|  luna | name.x     | age | behave              | visitno | name.y | ptx                 |
+|-------+------------+-----+---------------------+---------+--------+---------------------|
+| 11751 | behavioral |     | 2023-12-06 08:21:39 |       1 | mr     | 2023-12-08 09:06:00 |
+| 11823 | behavioral |  13 | 2024-08-09 14:51:18 |       1 |        |                     |
