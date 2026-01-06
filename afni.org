@@ -2,26 +2,262 @@
 
 https://afni.nimh.nih.gov/pub/dist/doc/htmldoc/afniandafni/gui_guide/afni_gui_overlay.html
 
-* 4dconcat + graph for QC
+* What?
+
+ **[[https://afni.nimh.nih.gov/][Analysis of Functional NeuroImages]]**
+#+begin_src bash :results none :eval never
+afni \
+  -com 'SET_OVERLAY MNI152_2009_template.nii.gz' \
+    ~/.cache/templateflow/tpl-MNI152NLin2009cAsym/*res-01_T1w.nii.gz\
+    $(dirname $(which afni))/MNI152_2009_template.nii.gz
+#+end_src
+
+#+DOWNLOADED: screenshot @ 2026-01-06 11:02:29
+[[file:What?/2026-01-06_11-02-29_screenshot.png]]
+
+** About
+
+ #+begin_quote
+Software suite of C, Python, R programs and shell scripts
+primarily developed for the analysis and display of multiple MRI modalities:
+  anatomical, functional MRI (FMRI) and diffusion weighted (DW) data
+ #+end_quote
+
+ * Bob Cox. 1994.
+ * https://github.com/afni/afni most recent commit 16 hours ago
+ * git history back to 1997, 24274 commits
+
+** Quirky
+
+
+#+DOWNLOADED: screenshot @ 2026-01-06 11:06:25
+[[file:What?/2026-01-06_11-06-25_screenshot.png]]
+
+#+begin_src bash :results verbatim
+sed -n 999,1004p /opt/ni_tools/afni-src/src/afni_startup_tips.h
+#+end_src
+
+#+RESULTS:
+:      "Three statisticians ==> Four opinions on data analysis"        ,
+:      "A fool and his p-value are soon non-replicated"                ,
+:      "What do you do all day? I do very little, and do it slowly"    ,
+:      "Did you find a paradigm shift today?"                          ,
+:      "Was it the silver bullet you were hoping for?"                 ,
+:      "Why is 'gold' the standard for data analysis, anyway?"         ,
+
+
+#+DOWNLOADED: screenshot @ 2026-01-06 11:08:51
+[[file:What?/2026-01-06_11-08-51_screenshot.png]]
+
+** Resources: Bootcamp, Message Board
+
+https://afni.nimh.nih.gov/bootcamp.html
+https://discuss.afni.nimh.nih.gov/c/announcements/8
+
+* NIFTI
+The file format.
+** Mixed binary encoded and ascii text
+*** template flow
+#+DOWNLOADED: screenshot @ 2026-01-06 10:53:51
+[[file:What?/2026-01-06_10-53-51_screenshot.png]]
+
+*** afni
+#+DOWNLOADED: screenshot @ 2026-01-06 10:45:03
+[[file:What?/2026-01-06_10-45-03_screenshot.png]]
+
+** Header has meta info
+
+  * Can read with =3dinfo=, =fslhd=,  python::nibabel, matlab::NiFTI, R::oro.nifti, etc
+  * ~sform~ & ~qform~ header are "nifti_code" => space (native, MNI)
+
+*** Specification
+
+#+CAPTION: https://brainder.org/2015/04/03/the-nifti-2-file-format/
+#+DOWNLOADED: screenshot @ 2026-01-06 10:31:16
+[[file:What?/2026-01-06_10-31-16_screenshot.png]]
+
+*** Reading
+#+begin_src bash  :results verbatim
+# templateflow get MNI152NLin2009cAsym
+file=~/.cache/templateflow/tpl-MNI152NLin2009cAsym/*res-01_T1w.nii.gz
+3dinfo -n4 -datum -nifti_code -space $file
+#+end_src
+
+#+RESULTS:
+: 193	229	193	1	short	4	MNI
+
+
+#+begin_src bash  :results verbatim :prologue "cd $(dirname $(which afni))"
+file=./MNI152_2009_template.nii.gz
+3dinfo -n4 -datum -nifti_code -space $file
+#+end_src
+
+#+RESULTS:
+: 193	229	193	1	short	4	MNI_2009c_asym
+
+**** python :noexport:
+#+begin_src python :export none :results verbatim
+import nibabel as nib
+fname='/home/foranw/.cache/templateflow/tpl-MNI152NLin2009cAsym/tpl-MNI152NLin2009cAsym_res-01_T1w.nii.gz'
+d = nib.load(fname)
+d.get_sform(coded=True)[1]
+#+end_src
+
+#+RESULTS:
+: 4
+
+
+** sform
+#+CAPTION: https://afni.nimh.nih.gov/pub/dist/doc/htmldoc/nifti/qsform_code.html
+#+DOWNLOADED: screenshot @ 2026-01-06 10:57:09
+[[file:What?/2026-01-06_10-57-09_screenshot.png]]
+
+
+** AFNI injects XML between header and data.
+Other tools know to skip this but not how to read it.
+
+#+begin_src  bash :results verbatim :prologue "cd $(dirname $(which afni))"
+gunzip -c ./MNI152_2009_template.nii.gz | tail -c+361 | head
+#+end_src
+
+#+RESULTS:
+#+begin_example
+<?xml version='1.0' ?>
+<AFNI_attributes
+  self_idcode="AFN_sg1QFkpvEQY6UZMvqCWs8w"
+  NIfTI_nums="193,229,193,1,1,4"
+  ni_form="ni_group" >
+<AFNI_atr
+  ni_type="String"
+  ni_dimen="1"
+  atr_name="HISTORY_NOTE" >
+ "[rwcox@MH02001842MACDT: Thu Dec 29 15:05:40 2016] 3dcopy MNI_temp+tlrc MNI152_2009_template.nii.gz\n[rwcox@afni.nimh.nih.gov: Thu Dec 29 14:57:57 2016] For use with the @SSwarper script\n[ptaylor@Eomer: Mon Jul  2 16:21:55 2018] {AFNI_18.1.33:linux_ubuntu_12_64} 3dcalc -a &apos;/data/REF_TEMPLATES_AFNI/MNI152_2009_template.nii.gz[0]&apos; -expr a -prefix MNI152_2009_template.nii.gz\n[glend@MH02217904MLI: Thu Oct 12 17:19:05 2023] {AFNI_23.2.08:macos_11_ARM_clang} 3drefit -space MNI_2009c_asym MNI152_2009_template.nii.gz MNI152_2009_template_SSW.nii.gz MNI_Glasser_HCP_v1.0.nii.gz"
+#+end_example
+
+#+begin_src  bash :results verbatim :prologue "cd $(dirname $(which afni))"
+3dNotes  ./MNI152_2009_template.nii.gz
+#+end_src
+
+#+RESULTS:
+:
+: ----- HISTORY -----
+: [rwcox@MH02001842MACDT: Thu Dec 29 15:05:40 2016] 3dcopy MNI_temp+tlrc MNI152_2009_template.nii.gz
+: [rwcox@afni.nimh.nih.gov: Thu Dec 29 14:57:57 2016] For use with the @SSwarper script
+: [ptaylor@Eomer: Mon Jul  2 16:21:55 2018] {AFNI_18.1.33:linux_ubuntu_12_64} 3dcalc -a '/data/REF_TEMPLATES_AFNI/MNI152_2009_template.nii.gz[0]' -expr a -prefix MNI152_2009_template.nii.gz
+: [glend@MH02217904MLI: Thu Oct 12 17:19:05 2023] {AFNI_23.2.08:macos_11_ARM_clang} 3drefit -space MNI_2009c_asym MNI152_2009_template.nii.gz MNI152_2009_template_SSW.nii.gz MNI_Glasser_HCP_v1.0.nii.gz
+
+
+* Demo
+
+#+begin_src bash :eval never
+startafni.sh
+/Volumes/Hera/Projects/Habit/mr/fmriprep/25.0.0/sub-11900/ses-1/func/sub-11900_ses-1_task-rest_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz
+#+end_src
+
+Alt:
+#+begin_src bash  :results none
+mni=~/.cache/templateflow/tpl-MNI152NLin2009cAsym/tpl-MNI152NLin2009cAsym_res-01_T1w.nii.gz
+func1=/Volumes/Hera/Projects/Habit/mr/fmriprep/25.0.0/sub-11900/ses-1/func/sub-11900_ses-1_task-rest_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz
+func2=/Volumes/Hera/Projects/Habit/mr/fmriprep/25.0.0/sub-11902/ses-1/func/sub-11902_ses-1_task-rest_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz
+afni \
+   -com 'SET_DICOM_XYZ -8 -9 9' \
+   -com "SET_OVERLAY $(basename $func)"\
+   $mni $func1 $func2
+#+end_src
+
+
 * Overlay
 ** right click color bar
-** Set p
+** Set p/threshold
 ** right click olay hidden menu
 ** A/B alpha/boxes
-AFNI_FUNC_BOXED_COLOR
-** overlay/underlay slicer
+revisit for =AFNI_FUNC_BOXED_COLOR=
+** overlay/underlay slider
+** "New"
 ** Time locking
 ** On the fly (insta, tstat)
+** Clusterize
+** Views
+  * =+tlrc= talairach = standard space, includes MNI
+  * =+orig= original. not standard, could be warp to anat or raw EPI
+  * Also see =AFNI_NIFTI_VIEW= for non-afni (nipy, matlab, fsl, ants, FS) saved without header info
+* startafni.sh, afnipicker
+#+begin_src shell :results none
+startafni.sh \
+/Volumes/Hera/Projects/Habit/mr/fmriprep/25.0.0/sub-1190*/ses-1/anat/sub-1190*_T1w.nii.gz &
+#+end_src
+* 4dconcat + graph for QC
+=/Volumes/Hera/Projects/7TBrainMech/scripts/mri/reho/qc_warps.bash=
+#+begin_src bash :eval never
+4dConcatSubBriks -o all_mprage_linwarp.nii.gz -- \
+  /Volumes/Zeus/preproc/7TBrainMech_rest/MHT1_2mm/*/mprage_warp_linear.nii.gz
+#+end_src
+
+#+begin_src bash :results none
+startafni.sh /Volumes/Hera/Projects/7TBrainMech/scripts/mri/reho/all_mprage_linwarp.nii.gz &
+#+end_src
+
 * Variables
  * Define Datamode ⇒ Misc ⇒ Edit Env
  * .afnirc
  * in shell (export or prefix command)
 https://afni.nimh.nih.gov/pub/dist/doc/htmldoc/educational/readme_env_vars.html
+
+*** AFNI_FUNC_BOXED_COLOR
+#+begin_src bash :results verbatim
+grep -hA7 'Variable: AFNI_FUNC_BOXED' $(dirname $(which afni))/README*
+#+end_src
+
+#+RESULTS:
+#+begin_example
+Variable: AFNI_FUNC_BOXED
+-------------------------
+Setting this string to YES will turn on outlining/boxing for the above
+threshold pixels in a functional image overlay. The outline is done over
+the pixels immediately OUTSIDE the above-threshold regions, in the
+overlay image as interpolated to the underlay resolution. If the
+underlay is on a coarse matrix (e.g., native EPI), these outlines
+will look blocky -- you can alter the underlay display grid dimension
+--
+Variable: AFNI_FUNC_BOXED_COLOR (editable)
+-------------------------------
+Defines the color used for the boxed outline of above threshold
+regions, when Boxed ('B' button above threshold slided) is turned on.
+See AFNI_FUNC_BOXED for more information. The default color is
+black, which a few people find harsh. This variable replaces the former
+AFNI_EDGIZE_COLOR, which now has no effect. Colors can be set via X11
+names (e.g., "yellow", "hotpink", "#1188ff").
+#+end_example
+
+*** AFNI_NIFTI_VIEW
+
+#+begin_src bash :results verbatim
+grep -hPA7 'Variable: (AFNI_NIFTI_VIEW|AFNI_DEFAULT_STD_SPACE)' $(dirname $(which afni))/README*
+#+end_src
+
+#+RESULTS:
+#+begin_example
+Variable: AFNI_DEFAULT_STD_SPACE
+--------------------------------
+The default template space is assumed to be TLRC. This is used for
+coordinate input to whereami, the whereami GUI and for TLRC view
+datasets without a template space explicitly set in the dataset
+header.
+
+--------------------------------
+Variable: AFNI_NIFTI_VIEW
+--------------------------------
+The default view extension used for output when creating AFNI format
+datasets from NIFTI datasets.This variable is only applicable for
+sform and qform codes that do not have clearly defined views
+(sform/qform code = 2). Set to "tlrc" or "orig". See also
+AFNI_DEFAULT_STD_SPACE and AFNI_NIFTI_PRIORITY. Note sform/qform code=5
+can be used for spaces other than MNI or TLRC including MNI_ANAT or D99
+#+end_example
+
 * Fun
 ** Disp -> Surface
 ** 3drender
-* Views
-AFNI_NIFTI_VIEW
 * Automation
 -com
 Xfvb
