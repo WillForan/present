@@ -1,0 +1,30 @@
+#+TITLE: AFNI GUI
+
+https://afni.nimh.nih.gov/pub/dist/doc/htmldoc/afniandafni/gui_guide/afni_gui_overlay.html
+
+* 4dconcat + graph for QC
+* Overlay
+** right click color bar
+** Set p
+** right click olay hidden menu
+** A/B alpha/boxes
+AFNI_FUNC_BOXED_COLOR
+** overlay/underlay slicer
+** Time locking
+** On the fly (insta, tstat)
+* Variables
+ * Define Datamode ⇒ Misc ⇒ Edit Env
+ * .afnirc
+ * in shell (export or prefix command)
+https://afni.nimh.nih.gov/pub/dist/doc/htmldoc/educational/readme_env_vars.html
+* Fun
+** Disp -> Surface
+** 3drender
+* Views
+AFNI_NIFTI_VIEW
+* Automation
+-com
+Xfvb
+** vs slicer
+
+* Suma
